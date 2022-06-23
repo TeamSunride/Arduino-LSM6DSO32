@@ -3,7 +3,7 @@
 //
 #include "device.h"
 
-
+// I2CDevice code written by Tom Danvers in https://github.com/TeamSunride/Arduino-BNO055
 void I2CDevice::device_begin(uint32_t freq)  {
     pipe->begin(); // by passing pipe, it allows the user to use Wire1, Wire2 etc.
     pipe->setClock(freq);
@@ -98,24 +98,27 @@ void SPIDevice::device_begin(uint32_t freq) {
         }
     }
     spi.beginTransaction(SPISettings(freq, SBFIRST, SPIMODE));
+    spi.begin(); // you have to begin to
 
 }
 
 byte SPIDevice::read_reg(byte regAddress) {
-    regAddress = READ | regAddress; // puts read bit into the 8th bit.
+    regAddress = READ_BYTE | regAddress; // puts read bit into the 8th bit.
     byte inByte = 0;
     digitalWrite(CS, LOW); // pulls CS low, which begins the transfer
-    inByte = spi.transfer(regAddress);  // transfers address over MOSI line, recieves a byte over MISO line.
+    spi.transfer(regAddress);  // transfers address over MOSI line
+    inByte = spi.transfer(0x00);
     digitalWrite(CS, HIGH); // pulls CS high, which ends the transfer
     return inByte;
+
 }
 
 void SPIDevice::read_regs(byte regAddress, byte *outputPointer, uint length) {
-    regAddress = READ | regAddress; // puts read bit into the 8th bit.
+    regAddress = READ_BYTE | regAddress; // puts read bit into the 8th bit.
     byte inByte = 0;
     digitalWrite(CS, LOW); // pulls CS low, which begins the transfer
     spi.transfer(regAddress); // transfer address of desired register
-    for (int i=0; i<length; i++) {
+    for (uint i=0; i<length; i++) {
         inByte = spi.transfer(0x00);  // transfers 0x00 over MOSI line, recieves a byte over MISO line.
         *outputPointer = inByte;
         outputPointer++; // increment output pointer.
@@ -124,20 +127,22 @@ void SPIDevice::read_regs(byte regAddress, byte *outputPointer, uint length) {
 }
 
 bool SPIDevice::write_reg(byte regAddress, byte data) {
-    regAddress = WRITE | regAddress; //
+    regAddress = WRITE_BYTE | regAddress; //
     digitalWrite(CS, LOW); // pulls CS low, which begins the transfer
     spi.transfer(regAddress);
     spi.transfer(data);
     digitalWrite(CS, HIGH); // pulls CS high, which ends the transfer
+    return true;
 }
 
 bool SPIDevice::write_regs(byte regAddress, byte *writeBuffer, uint length) {
-    regAddress = WRITE | regAddress;
+    regAddress = WRITE_BYTE | regAddress;
     digitalWrite(CS, LOW); // pulls CS low, which begins the transfer
     spi.transfer(regAddress);
-    for (int i=0; i<length; i++) {
+    for (uint i=0; i<length; i++) {
         spi.transfer(*writeBuffer);
         writeBuffer++; // increment writeBuffer pointer
     }
     digitalWrite(CS, HIGH); // pulls CS high, which ends the transfer
+    return true;
 }

@@ -8,8 +8,11 @@
 #include "Wire.h"
 #include "SPI.h"
 
-#define WRITE 0b00000000
-#define READ 0b10000000
+enum SPI_NUM {
+    SPI_CHANNEL_0 = 0, // just to make things more readable when initialising SPI
+    SPI_CHANNEL_1 = 1,
+    SPI_CHANNEL_2 = 2
+};
 
 #define SPI0_MOSI_PIN 11
 #define SPI0_MISO_PIN 12
@@ -61,12 +64,14 @@ protected:
     byte CS; // chip select pin used
     byte SBFIRST;
     byte SPIMODE;
-    byte SPINUM; // the spi channel used, SPI0, SPI1 etc
+    SPI_NUM SPINUM; // the spi channel used, SPI0, SPI1 etc
     SPIClass spi;
+    byte READ_BYTE; // these are unique to every device - check the datasheet
+    byte WRITE_BYTE;
 public:
-    SPIDevice(byte chipSelect, byte sbFirst, byte spiMode, byte spiNum)  // constructor
+    SPIDevice(byte chipSelect, byte sbFirst, byte spiMode, SPI_NUM spiNum, byte READ, byte WRITE)  // constructor
         : CS {chipSelect}, SBFIRST {sbFirst}, SPIMODE {spiMode}, SPINUM {spiNum},
-        spi {SPI} {} // defaults to SPI0 but will be changed in device_begin() as needed
+        spi {SPI}, READ_BYTE {READ}, WRITE_BYTE {WRITE} {} // defaults to SPI0 but will be changed in device_begin() as needed
 
     void device_begin(uint32_t freq) override;
     byte read_reg(byte regAddress) override;
