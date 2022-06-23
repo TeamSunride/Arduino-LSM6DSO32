@@ -41,11 +41,103 @@ void I2CDevice::read_regs(byte regAddress, byte* outputPointer,  uint length)  {
 
 
 bool I2CDevice::write_reg(byte regAddress, byte data) {
-
+    pipe->beginTransmission(deviceAddress);
+    pipe->write(regAddress);
+    pipe->write(data);
+    return pipe->endTransmission() == 0; // 0 means success
 }
 
 bool I2CDevice::write_regs(byte regAddress ,byte* writeBuffer, uint length) {
+    pipe->beginTransmission(deviceAddress);
+    pipe->write(regAddress);
+
+    byte bytesWritten = 0;
+    while (bytesWritten < length) {
+        pipe->write(*writeBuffer);
+        writeBuffer++;
+        bytesWritten++;
+    }
+    return pipe->endTransmission() == 0; // 0 means success
 
 }
 
 
+
+
+// **** SPIDevice ****
+void SPIDevice::device_begin(uint32_t freq) {
+    pinMode(CS, OUTPUT); // CS pin is pulled low when device is selected
+    switch (SPINUM) {
+        case(0): {
+            spi = SPI; // the spi channel is determined by SPINUM
+            pinMode(SPI0_MOSI_PIN, OUTPUT);
+            pinMode(SPI0_MISO_PIN, INPUT);
+            pinMode(SPI0_SCK_PIN, OUTPUT);
+            break;
+        }
+        case(1): {
+            spi = SPI1;
+            pinMode(SPI1_MOSI_PIN, OUTPUT);
+            pinMode(SPI1_MISO_PIN, INPUT);
+            pinMode(SPI1_SCK_PIN, OUTPUT);
+            break;
+        }
+        case(2): {
+            spi = SPI2;
+            pinMode(SPI2_MOSI_PIN, OUTPUT);
+            pinMode(SPI2_MISO_PIN, INPUT);
+            pinMode(SPI2_SCK_PIN, OUTPUT);
+            break;
+        }
+        default:{ // defaults to SPI0
+            spi = SPI;
+            pinMode(SPI0_MOSI_PIN, OUTPUT);
+            pinMode(SPI0_MISO_PIN, INPUT);
+            pinMode(SPI0_SCK_PIN, OUTPUT);
+            break;
+        }
+    }
+    spi.beginTransaction(SPISettings(freq, SBFIRST, SPIMODE));
+
+}
+
+byte SPIDevice::read_reg(byte regAddress) {
+    regAddress = READ | regAddress; // puts read bit into the 8th bit.
+    byte inByte = 0;
+    digitalWrite(CS, LOW); // pulls CS low, which begins the transfer
+    inByte = spi.transfer(regAddress);  // transfers address over MOSI line, recieves a byte over MISO line.
+    digitalWrite(CS, HIGH); // pulls CS high, which ends the transfer
+    return inByte;
+}
+
+void SPIDevice::read_regs(byte regAddress, byte *outputPointer, uint length) {
+    regAddress = READ | regAddress; // puts read bit into the 8th bit.
+    byte inByte = 0;
+    digitalWrite(CS, LOW); // pulls CS low, which begins the transfer
+    spi.transfer(regAddress); // transfer address of desired register
+    for (int i=0; i<length; i++) {
+        inByte = spi.transfer(0x00);  // transfers 0x00 over MOSI line, recieves a byte over MISO line.
+        *outputPointer = inByte;
+        outputPointer++; // increment output pointer.
+    }
+    digitalWrite(CS, HIGH); // pulls CS high, which ends the transfer
+}
+
+bool SPIDevice::write_reg(byte regAddress, byte data) {
+    regAddress = WRITE | regAddress; //
+    digitalWrite(CS, LOW); // pulls CS low, which begins the transfer
+    spi.transfer(regAddress);
+    spi.transfer(data);
+    digitalWrite(CS, HIGH); // pulls CS high, which ends the transfer
+}
+
+bool SPIDevice::write_regs(byte regAddress, byte *writeBuffer, uint length) {
+    regAddress = WRITE | regAddress;
+    digitalWrite(CS, LOW); // pulls CS low, which begins the transfer
+    spi.transfer(regAddress);
+    for (int i=0; i<length; i++) {
+        spi.transfer(*writeBuffer);
+        writeBuffer++; // increment writeBuffer pointer
+    }
+    digitalWrite(CS, HIGH); // pulls CS high, which ends the transfer
+}

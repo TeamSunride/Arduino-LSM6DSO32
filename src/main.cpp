@@ -1,57 +1,21 @@
 #include <Arduino.h>
 #include <SPI.h>
-
-
+#include "device.h"
+#include "LSMDS032_registers.h"
 /*
  * Datasheet: https://www.st.com/resource/en/datasheet/lsm6dso32.pdf
  *
 */
 
-/* Defines */
-#define CS 35
-#define MOSI 11
-#define MISO 12
-#define SCK 13 // LED is also on this pin
-#define WRITE 0b10000000
-#define READ 0b00000000
-
-
+#define CS 10
+I2CDevice sensor(0x6A, &Wire);
 
 void setup() {
-    pinMode(CS, OUTPUT); // CS is pulled low when selected
-    pinMode(MOSI, OUTPUT);
-    pinMode(MISO, INPUT);
-    pinMode(SCK, OUTPUT);
-
-    SPI.beginTransaction(SPISettings(14000000, MSBFIRST, SPI_MODE0));
-
+    // LSM uses SPI Mode 2 : Those lines are driven at the falling edge of SPC and should be captured at the rising edge of SPC.
+    Serial.begin(9600);
 }
-
-
-int SPIRREGREAD(byte address, int bytesToRead){  // FIFO
-    address = READ | address; // puts 0 int the 8th bit.
-    byte inByte = 0;
-    int result = 0;
-    digitalWrite(CS, LOW); // begin transfer
-    for (int i=0; i<bytesToRead; i++) {
-        result = result << 8;
-        inByte = SPI.transfer(0x00);  // transfers 0x00 over MOSI line, recieves a byte over MISO line.
-        result = result | inByte;
-    }
-    digitalWrite(CS, HIGH); // end transfer
-    return result;
-}
-
-
-void SPIREGSET(byte address, byte value) {
-    address = WRITE | address; //
-    digitalWrite(CS, LOW); // pulls CS low, which begins the transfer
-    SPI.transfer(address);
-    SPI.transfer(value);
-    digitalWrite(CS, HIGH); // pulls CS high, which ends the transfer
-}
-
 
 void loop() {
-
+    byte a = sensor.read_reg(OUTX_H_A);
+    Serial.printf("%d\n", a);
 }
