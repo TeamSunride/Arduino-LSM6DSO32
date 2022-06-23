@@ -8,11 +8,12 @@
 #include "Wire.h"
 #include "SPI.h"
 
-
+byte getBit(byte bits, int bitIndex);
+void setBit(byte* bits, int bitIndex, int val);
 
 class protocol { // abstract class with the aim of allowing the same operations for both SPI and I2C (and possibly other) protocols
 public:
-    virtual void protocol_begin() = 0 ; // begin protocol
+    virtual bool protocol_begin() = 0 ; // begin protocol
 
     virtual byte read_reg(byte regAddress) = 0;
     virtual void read_regs(byte regAddress, byte* outputPointer, uint length) = 0;
@@ -32,7 +33,7 @@ protected:
 public:
     I2CProtocol(byte i2c_address, TwoWire* i2c_pipe, uint32_t freq); // constructor defined elsewhere
 
-    void protocol_begin() override;
+    bool protocol_begin() override;
     byte read_reg(byte regAddress) override;
     void read_regs(byte regAddress, byte* outputPointer,  uint length) override;
     bool write_reg(byte regAddress, byte data) override;
@@ -54,7 +55,7 @@ public:
     SPIProtocol(byte chipSelect, SPIClass spiChannel, SPISettings settings, byte READ, byte WRITE); // constructor defined elsewhere
 
 
-    void protocol_begin() override;
+    bool protocol_begin() override;
     byte read_reg(byte regAddress) override;
     void read_regs(byte regAddress, byte* outputPointer,  uint length) override;
     bool write_reg(byte regAddress, byte data) override;

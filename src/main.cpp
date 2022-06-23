@@ -9,15 +9,17 @@
  *
 */
 
+/* Usage */
 #define CS_pin 10
-SPISettings settings = SPISettings(1000000, MSBFIRST, SPI_MODE2);
+SPISettings settings = SPISettings(4000000, MSBFIRST, SPI_MODE2);
 LSM6DS032 LSM(CS_pin, SPI, settings);
 
 void setup() {
     Serial.begin(9600);
+    LSM.begin();
 }
 
 
 void loop() {
-    delay(10);
+    delay(2);
 }

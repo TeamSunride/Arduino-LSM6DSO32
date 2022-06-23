@@ -3,6 +3,22 @@
 //
 #include "protocol.h"
 
+
+/* Bit manipulation */
+byte getBit(byte bits, int bitIndex) {
+    return (bits & (1 << (bitIndex))) ? 1 : 0;
+}
+
+void setBit(byte* bits, int bitIndex, int val) { // index starts from lsb (at 0) and goes right
+    // This way, bits is ORed a one that is shifted left by bitIndex, which sets the bit to 1
+    // likewise bit is ANDed with a byte like 0b11101111 for example, if the bit index was 4. This sets ONLY the 5th bit to 0;
+    (val) ? (*bits |= (1 << (bitIndex))) : (*bits &= ~(1 << (bitIndex)));
+}
+
+
+
+
+
 // I2CProtocol code written by Tom Danvers in https://github.com/TeamSunride/Arduino-BNO055
 I2CProtocol::I2CProtocol(byte i2c_address, TwoWire *i2c__pipe, uint32_t freq) {
     _deviceAddress = i2c_address;
@@ -11,9 +27,10 @@ I2CProtocol::I2CProtocol(byte i2c_address, TwoWire *i2c__pipe, uint32_t freq) {
 }
 
 
-void I2CProtocol::protocol_begin()  {
+bool I2CProtocol::protocol_begin()  {
     _pipe->begin(); // by passing _pipe, it allows the user to use Wire1, Wire2 etc.
     _pipe->setClock(_freq);
+    return true; // true for success - not applicable to all protocols
 }
 
 byte I2CProtocol::read_reg(byte regAddress) {
@@ -82,9 +99,10 @@ SPIProtocol::SPIProtocol(byte chipSelect, SPIClass spiChannel, SPISettings setti
 
 
 
-void SPIProtocol::protocol_begin() {
+bool SPIProtocol::protocol_begin() {
     _spi.beginTransaction(_settings);
     _spi.begin(); // you have to begin the SPI bus before you can use it --_--
+    return true; // true for success - not applicable to all protocols
 }
 
 byte SPIProtocol::read_reg(byte regAddress) {
