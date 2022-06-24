@@ -13,13 +13,13 @@ void setBit(byte* bits, int bitIndex, int val);
 
 class protocol { // abstract class with the aim of allowing the same operations for both SPI and I2C (and possibly other) protocols
 public:
-    virtual bool protocol_begin() = 0 ; // begin protocol
+    virtual uint8_t protocol_begin() = 0 ; // begin protocol
 
     virtual byte read_reg(byte regAddress) = 0;
     virtual void read_regs(byte regAddress, byte* outputPointer, uint length) = 0;
 
-    virtual bool write_reg(byte regAddress, byte data) = 0;
-    virtual bool write_regs(byte regAddress ,byte* writeBuffer, uint length) = 0;
+    virtual uint8_t write_reg(byte regAddress, byte data) = 0;
+    virtual uint8_t write_regs(byte regAddress ,byte* writeBuffer, uint length) = 0;
 
     ~protocol() = default; // destructor
 };
@@ -33,11 +33,11 @@ protected:
 public:
     I2CProtocol(byte i2c_address, TwoWire* i2c_pipe, uint32_t freq); // constructor defined elsewhere
 
-    bool protocol_begin() override;
+    uint8_t protocol_begin() override;
     byte read_reg(byte regAddress) override;
     void read_regs(byte regAddress, byte* outputPointer,  uint length) override;
-    bool write_reg(byte regAddress, byte data) override;
-    bool write_regs(byte regAddress ,byte* writeBuffer, uint length) override;
+    uint8_t write_reg(byte regAddress, byte data) override;
+    uint8_t write_regs(byte regAddress ,byte* writeBuffer, uint length) override;
 
     ~I2CProtocol() { _pipe->end(); }; // destructor - For if you want to control the protocol's lifetime
 
@@ -55,11 +55,11 @@ public:
     SPIProtocol(byte chipSelect, SPIClass spiChannel, SPISettings settings, byte READ, byte WRITE); // constructor defined elsewhere
 
 
-    bool protocol_begin() override;
+    uint8_t protocol_begin() override;
     byte read_reg(byte regAddress) override;
     void read_regs(byte regAddress, byte* outputPointer,  uint length) override;
-    bool write_reg(byte regAddress, byte data) override;
-    bool write_regs(byte regAddress ,byte* writeBuffer, uint length) override;
+    uint8_t write_reg(byte regAddress, byte data) override;
+    uint8_t write_regs(byte regAddress ,byte* writeBuffer, uint length) override;
 
     ~SPIProtocol() { _spi.end(); }; // destructor
 

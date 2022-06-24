@@ -20,17 +20,17 @@ void setBit(byte* bits, int bitIndex, int val) { // index starts from lsb (at 0)
 
 
 // I2CProtocol code written by Tom Danvers in https://github.com/TeamSunride/Arduino-BNO055
-I2CProtocol::I2CProtocol(byte i2c_address, TwoWire *i2c__pipe, uint32_t freq) {
+I2CProtocol::I2CProtocol(byte i2c_address, TwoWire *i2c_pipe, uint32_t freq) {
     _deviceAddress = i2c_address;
-    _pipe = i2c__pipe;
+    _pipe = i2c_pipe;
     _freq = freq;
 }
 
 
-bool I2CProtocol::protocol_begin()  {
+uint8_t I2CProtocol::protocol_begin()  {
     _pipe->begin(); // by passing _pipe, it allows the user to use Wire1, Wire2 etc.
     _pipe->setClock(_freq);
-    return true; // true for success - not applicable to all protocols
+    return 0; // zero for success - not applicable to all protocols
 }
 
 byte I2CProtocol::read_reg(byte regAddress) {
@@ -64,14 +64,14 @@ void I2CProtocol::read_regs(byte regAddress, byte* outputPointer,  uint length) 
 }
 
 
-bool I2CProtocol::write_reg(byte regAddress, byte data) {
+uint8_t I2CProtocol::write_reg(byte regAddress, byte data) {
     _pipe->beginTransmission(_deviceAddress);
     _pipe->write(regAddress);
     _pipe->write(data);
-    return _pipe->endTransmission() == 0; // 0 means success
+    return _pipe->endTransmission() ; // 0 means success
 }
 
-bool I2CProtocol::write_regs(byte regAddress ,byte* writeBuffer, uint length) {
+uint8_t I2CProtocol::write_regs(byte regAddress ,byte* writeBuffer, uint length) {
     _pipe->beginTransmission(_deviceAddress);
     _pipe->write(regAddress);
 
@@ -81,7 +81,7 @@ bool I2CProtocol::write_regs(byte regAddress ,byte* writeBuffer, uint length) {
         writeBuffer++;
         bytesWritten++;
     }
-    return _pipe->endTransmission() == 0; // 0 means success
+    return _pipe->endTransmission(); // 0 means success
 
 }
 
@@ -99,10 +99,10 @@ SPIProtocol::SPIProtocol(byte chipSelect, SPIClass spiChannel, SPISettings setti
 
 
 
-bool SPIProtocol::protocol_begin() {
+uint8_t SPIProtocol::protocol_begin() {
     _spi.beginTransaction(_settings);
     _spi.begin(); // you have to begin the SPI bus before you can use it --_--
-    return true; // true for success - not applicable to all protocols
+    return 0; // 0 for success - not applicable to all protocols
 }
 
 byte SPIProtocol::read_reg(byte regAddress) {
@@ -129,16 +129,16 @@ void SPIProtocol::read_regs(byte regAddress, byte *outputPointer, uint length) {
     digitalWrite(CS, HIGH); // pulls CS high, which ends the transfer
 }
 
-bool SPIProtocol::write_reg(byte regAddress, byte data) {
+uint8_t SPIProtocol::write_reg(byte regAddress, byte data) {
     regAddress = WRITE_BYTE | regAddress; //
     digitalWrite(CS, LOW); // pulls CS low, which begins the transfer
     _spi.transfer(regAddress);
     _spi.transfer(data);
     digitalWrite(CS, HIGH); // pulls CS high, which ends the transfer
-    return true;
+    return 0; // 0 for success - not applicable to all protocols
 }
 
-bool SPIProtocol::write_regs(byte regAddress, byte *writeBuffer, uint length) {
+uint8_t SPIProtocol::write_regs(byte regAddress, byte *writeBuffer, uint length) {
     regAddress = WRITE_BYTE | regAddress;
     digitalWrite(CS, LOW); // pulls CS low, which begins the transfer
     _spi.transfer(regAddress);
@@ -147,6 +147,6 @@ bool SPIProtocol::write_regs(byte regAddress, byte *writeBuffer, uint length) {
         writeBuffer++; // increment writeBuffer pointer
     }
     digitalWrite(CS, HIGH); // pulls CS high, which ends the transfer
-    return true;
+    return 0; // 0 for success - not applicable to all protocols
 }
 
