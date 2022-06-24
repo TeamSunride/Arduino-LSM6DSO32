@@ -3,7 +3,7 @@
 //
 #include "LSM6DS032.h"
 
-
+/// Constructors
 LSM6DS032::LSM6DS032(TwoWire *pipe, uint32_t freq) { // constructor for I2C protocol
     device = new I2CProtocol(LSM6DS032_DEFAULT_I2C_ADDRESS, pipe, freq);
 }
@@ -77,7 +77,6 @@ uint8_t LSM6DS032::set_batching_data_rates(BATCHING_DATA_RATES accel_BDR, BATCHI
     return device->write_reg(LSM6DS032_REGISTER::FIFO_CTRL3, ((gyro_BDR<<4) | accel_BDR));
 }
 
-
 uint8_t LSM6DS032::set_timestamp_batching_decimation(TIMESTAMP_BATCHING_DECIMATION decimation) {
     /** Selects decimation for timestamp batching in FIFO. Writing rate will be the maximum
         rate between XL and GYRO BDR divided by decimation decoder.*/
@@ -100,4 +99,13 @@ uint8_t LSM6DS032::set_fifo_mode(FIFO_MODES mode) {
     data = mode | data;
     return device->write_reg(LSM6DS032_REGISTER::FIFO_CTRL4, data);
 }
+
+uint8_t LSM6DS032::set_dataready_pulsed(bool enable) {
+    byte data = device->read_reg(LSM6DS032_REGISTER::COUNTER_BDR_REG1);
+    data = data & 0b01100111; // bits 3 and 4 must be zero, clear bit 7
+    (enable) ? setBit(&data, 7, 1) : setBit(&data, 7, 0);
+    return device->write_reg(LSM6DS032_REGISTER::COUNTER_BDR_REG1, data);
+}
+
+
 
