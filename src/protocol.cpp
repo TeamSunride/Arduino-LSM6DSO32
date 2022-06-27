@@ -9,7 +9,7 @@ byte getBit(byte bits, int bitIndex) {
     return (bits & (1 << (bitIndex))) ? 1 : 0;
 }
 
-void setBit(byte* bits, int bitIndex, int val) { // index starts from lsb (at 0) and goes right
+void setBit(byte* bits, int bitIndex, int val) { // index starts from lsb (at 0) and goes left
     // This way, bits is ORed a one that is shifted left by bitIndex, which sets the bit to 1
     // likewise bit is ANDed with a byte like 0b11101111 for example, if the bit index was 4. This sets ONLY the 5th bit to 0;
     (val) ? (*bits |= (1 << (bitIndex))) : (*bits &= ~(1 << (bitIndex)));
@@ -100,6 +100,7 @@ SPIProtocol::SPIProtocol(byte chipSelect, SPIClass spiChannel, SPISettings setti
 
 
 uint8_t SPIProtocol::protocol_begin() {
+    pinMode(CS, OUTPUT); // Other pins are configured on spi.begin().
     _spi.beginTransaction(_settings);
     _spi.begin(); // you have to begin the SPI bus before you can use it --_--
     return 0; // 0 for success - not applicable to all protocols

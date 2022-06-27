@@ -14,8 +14,23 @@
 #define READ_BYTE 0b10000000
 
 #define LSM6DS032_DEFAULT_I2C_ADDRESS 0x6A // from back of adafruit breakout board
+#define LSM6DS032_ACCEL_CONVERSION_FACTOR 0.0098 // from datasheet
+#define LSM6DS032_GYRO_CONVERSION_FACTOR 1 // TODO: WHAT IS THIS CONVERSION FACTOR
 
-
+enum UNCOMPRESSED_DATA_BATCHING_RATES {
+    /**
+     * This field configures the compression algorithm to write non-compressed data at
+        each rate.
+        (0: Non-compressed data writing is not forced;
+        1: Non-compressed data every 8 batch data rate;
+        2: Non-compressed data every 16 batch data rate;
+        3: Non-compressed data every 32 batch data rate)
+     */
+     UNCOPTR_0 = 0b00,
+     UNCOPTR_8 = 0b01,
+     UNCOPTR_16 = 0b10,
+     UNCOPTR_32 = 0b11
+};
 
 enum LSM6DS032_OPERATING_MODES {
     /**
@@ -166,7 +181,36 @@ enum FIFO_MODES {
 };
 
 enum INTERRUPTS {
+    // TODO: add all interrupts
+};
 
+enum OUTPUT_DATA_RATES {
+    ODR_POWER_DOWN = 0b0000,
+    ODR_1_6_HZ = 0b1011, /// 1.6Hz in low power mode (accel only), 12.5Hz in High performance mode
+    ODR_12_5_HZ = 0b0001,
+    ODR_26_HZ = 0b0010,
+    ODR_52_HZ = 0b0011,
+    ODR_104_HZ = 0b0100,
+    ODR_208_HZ = 0b0101,
+    ODR_416_HZ = 0b0110,
+    ODR_833_HZ = 0b0111,
+    ODR_1667_HZ = 0b1000,
+    ODR_3333_HZ = 0b1001,
+    ODR_6667_HZ = 0b1010
+};
+
+enum ACCEL_FULL_SCALE {
+    ACCEL_SCALE_4G = 0b00,
+    ACCEL_SCALE_8G = 0b10,
+    ACCEL_SCALE_16G = 0b11,
+    ACCEL_SCALE_32G = 0b01
+};
+
+enum GYRO_FULL_SCALE {
+    GYRO_SCALE_250DPS = 0b00,
+    GYRO_SCALE_500DPS = 0b01,
+    GYRO_SCALE_1000DPS = 0b10,
+    GYRO_SCALE_2000DPS = 0b11
 };
 
 #endif //ARDUINO_LSM6DS032_LSM6DS032_CONSTANTS_H

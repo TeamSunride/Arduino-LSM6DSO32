@@ -2,6 +2,7 @@
 // Created by robos on 23/06/2022.
 //
 #include "LSM6DS032.h"
+#include "Vector.h"
 
 /// Constructors
 LSM6DS032::LSM6DS032(TwoWire *pipe, uint32_t freq) { // constructor for I2C protocol
@@ -14,6 +15,24 @@ LSM6DS032::LSM6DS032(byte chipSelect, SPIClass& spi, SPISettings settings) { // 
 }
 
 // Cheers GitHub copilot ;)
+
+byte LSM6DS032::read_reg(LSM6DS032_REGISTER regAddress) {
+    return device->read_reg(regAddress);
+}
+
+void LSM6DS032::read_regs(LSM6DS032_REGISTER regAddress, byte *outputPointer, uint length) {
+    return device->read_regs(regAddress, outputPointer, length);
+}
+
+uint8_t LSM6DS032::write_reg(LSM6DS032_REGISTER regAddress, byte data) {
+    return device->write_reg(regAddress, data);
+}
+
+uint8_t LSM6DS032::write_regs(LSM6DS032_REGISTER regAddress, byte *data, uint length) {
+    return device->write_regs(regAddress, data, length);
+}
+
+
 
 uint8_t LSM6DS032::enable_embedded_functions(bool enable) {
     byte data= device->read_reg(LSM6DS032_REGISTER::FUNC_CFG_ADDRESS);
@@ -36,7 +55,7 @@ uint8_t LSM6DS032::enable_sdo_pullup(bool enable) {
     return device->write_reg(LSM6DS032_REGISTER::PIN_CTRL, data);
 }
 
-uint8_t LSM6DS032::set_fifo_watermark(short waterMarkBytes) { // waterMarkBytes should be a multiple of 7??
+uint8_t LSM6DS032::set_fifo_watermark(short waterMarkBytes) { /// max watermark 511 (9 bits)
     /* FIFO watermark threshold
         1 LSB = 1 sensor (6 bytes) + TAG (1 byte) written in FIFO
         Watermark flag rises when the number of bytes written in the FIFO is greater than or
@@ -70,6 +89,14 @@ uint8_t LSM6DS032::enable_fifo_compression_runtime(bool enable) { // for enablin
 
 uint8_t LSM6DS032::enable_fifo_compression(bool enable) {
     // TODO: enable_fifo_compression - requires embedded functions access.
+}
+
+
+uint8_t LSM6DS032::set_uncompressed_data_rate(UNCOMPRESSED_DATA_BATCHING_RATES rate) {
+    byte data = device->read_reg(LSM6DS032_REGISTER::FIFO_CTRL2);
+    data = data & 0b11010001;
+    data = (rate<<1) | data;
+    return device->write_reg(LSM6DS032_REGISTER::FIFO_CTRL2, data);
 }
 
 // The batching data rate is the writing frequency to the fifo
@@ -109,3 +136,65 @@ uint8_t LSM6DS032::set_dataready_pulsed(bool enable) {
 
 
 
+byte LSM6DS032::who_am_i() {
+    return device->read_reg(LSM6DS032_REGISTER::WHO_AM_I);
+}
+
+uint8_t LSM6DS032::set_accel_ODR(OUTPUT_DATA_RATES rate) {
+    byte data = device->read_reg(LSM6DS032_REGISTER::CTRL1_XL);
+    data = data & 0b00001110; // bit 0 must be 0
+    data = (rate<<4) | data;
+    return device->write_reg(LSM6DS032_REGISTER::CTRL1_XL, data);
+}
+
+uint8_t LSM6DS032::set_accel_full_scale(ACCEL_FULL_SCALE scale) {
+    byte data = device->read_reg(LSM6DS032_REGISTER::CTRL1_XL);
+    data = data & 0b11110010;
+    data = (scale<<2) | data;
+    return device->write_reg(LSM6DS032_REGISTER::CTRL1_XL, data);
+}
+
+uint8_t LSM6DS032::set_gyro_ODR(OUTPUT_DATA_RATES rate) {
+    byte data = device->read_reg(LSM6DS032_REGISTER::CTRL2_G);
+    data = data & 0b00001100; // bit 0 must be 0
+    data = (rate<<4) | data;
+    return device->write_reg(LSM6DS032_REGISTER::CTRL2_G, data);
+}
+
+uint8_t LSM6DS032::set_gyro_full_scale(GYRO_FULL_SCALE scale) {
+    byte data = device->read_reg(LSM6DS032_REGISTER::CTRL2_G);
+    data = data & 0b11110000; // bit 1 should be zero also, because we dont just want 125 dps.
+    data = (scale<<2) | data;
+    return device->write_reg(LSM6DS032_REGISTER::CTRL2_G, data);
+}
+
+uint8_t LSM6DS032::default_configuration() {
+    set_fifo_watermark(511);
+    set_accel_ODR(OUTPUT_DATA_RATES::ODR_1667_HZ);
+    set_accel_full_scale(ACCEL_FULL_SCALE::ACCEL_SCALE_32G);
+    set_gyro_ODR(OUTPUT_DATA_RATES::ODR_1667_HZ);
+    set_gyro_full_scale(GYRO_FULL_SCALE::GYRO_SCALE_2000DPS);
+
+
+    return 0;
+}
+
+Vector<double> LSM6DS032::get_accel() {
+    Vector<double> returnVect = {0, 0, 0};
+    byte a[6] = {0};
+    device->read_regs(LSM6DS032_REGISTER::OUTX_L_A, a, 6);
+    returnVect[0] = ((short)((a[1]<<8) | a[0])) * LSM6DS032_ACCEL_CONVERSION_FACTOR;
+    returnVect[1] = ((short)((a[3]<<8) | a[2])) * LSM6DS032_ACCEL_CONVERSION_FACTOR;
+    returnVect[2] = ((short)((a[5]<<8) | a[4])) * LSM6DS032_ACCEL_CONVERSION_FACTOR;
+    return returnVect;
+}
+
+Vector<double> LSM6DS032::get_gyro() {
+    Vector<double> returnVect = {0, 0, 0};
+    byte a[6] = {0};
+    device->read_regs(LSM6DS032_REGISTER::OUTX_L_G, a, 6);
+    returnVect[0] = ((short)((a[1]<<8) | a[0])) * LSM6DS032_GYRO_CONVERSION_FACTOR;
+    returnVect[1] = ((short)((a[3]<<8) | a[2])) * LSM6DS032_GYRO_CONVERSION_FACTOR;
+    returnVect[2] = ((short)((a[5]<<8) | a[4])) * LSM6DS032_GYRO_CONVERSION_FACTOR;
+    return returnVect;
+}

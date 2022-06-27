@@ -7,6 +7,7 @@
 #include "protocol.h"
 #include "LSM6DS032_registers.h"
 #include "LSM6DS032_constants.h"
+#include "Vector.h"
 
 /*
  * Datasheet: https://www.st.com/resource/en/datasheet/lsm6dso32.pdf
@@ -25,6 +26,13 @@ public:
         device->protocol_begin();
         // any other set up etc
     }
+
+    // breakout reg functions to LSM class
+    byte read_reg(LSM6DS032_REGISTER regAddress);
+    void read_regs(LSM6DS032_REGISTER regAddress, byte* outputPointer,  uint length);
+    uint8_t write_reg(LSM6DS032_REGISTER regAddress, byte data);
+    uint8_t write_regs(LSM6DS032_REGISTER regAddress ,byte* writeBuffer, uint length);
+
     /* Functions */
     /**
      *
@@ -52,7 +60,7 @@ public:
     uint8_t enable_fifo_compression_runtime(bool enable);
     uint8_t enable_fifo_compression(bool enable);
     // TODO: FIFO_CTRL2 ODRCHG_EN ??  Note: I will do all these TODOs when I have a better understanding of the way the fifo works
-    // TODO: UNCOPTR_RATE ?? (FIFO_CTRL2)
+    uint8_t set_uncompressed_data_rate(UNCOMPRESSED_DATA_BATCHING_RATES rate);
     uint8_t set_batching_data_rates(BATCHING_DATA_RATES accel_BDR, BATCHING_DATA_RATES gyro_BDR);
     uint8_t set_timestamp_batching_decimation(TIMESTAMP_BATCHING_DECIMATION decimation);
     uint8_t set_temperature_batching_data_rate(TEMPERATURE_BATCHING_RATE rate);
@@ -69,8 +77,21 @@ public:
     // TODO: RST_COUNTER_BDR (COUNTER_BDR_REG1) ??
     // TODO: TRIG_COUNTER_BDR
     // TODO: CNT_BDR_TH
+    // TODO: INT1_CTRL, INT2_CTRL
+    byte who_am_i();
+    uint8_t set_accel_ODR(OUTPUT_DATA_RATES rate);
+    uint8_t set_accel_full_scale(ACCEL_FULL_SCALE scale);
+    uint8_t set_gyro_ODR(OUTPUT_DATA_RATES rate);
+    uint8_t set_gyro_full_scale(GYRO_FULL_SCALE scale);
+
+    Vector<double> get_accel();
+    Vector<double> get_gyro();
 
 
+
+
+
+    uint8_t default_configuration();
 
 
 
