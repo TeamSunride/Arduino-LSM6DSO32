@@ -59,7 +59,7 @@ public:
     uint8_t stop_on_WTM(bool enable);
     uint8_t enable_fifo_compression_runtime(bool enable);
     uint8_t enable_fifo_compression(bool enable);
-    // TODO: FIFO_CTRL2 ODRCHG_EN ??  Note: I will do all these TODOs when I have a better understanding of the way the fifo works
+
     uint8_t set_uncompressed_data_rate(UNCOMPRESSED_DATA_BATCHING_RATES rate);
     uint8_t set_batching_data_rates(BATCHING_DATA_RATES accel_BDR, BATCHING_DATA_RATES gyro_BDR);
     uint8_t set_timestamp_batching_decimation(TIMESTAMP_BATCHING_DECIMATION decimation);
@@ -74,15 +74,42 @@ public:
      * @return Status Code (0 for success)
      */
     uint8_t set_dataready_pulsed(bool enable);
-    // TODO: RST_COUNTER_BDR (COUNTER_BDR_REG1) ??
-    // TODO: TRIG_COUNTER_BDR
-    // TODO: CNT_BDR_TH
-    // TODO: INT1_CTRL, INT2_CTRL
+    uint8_t reset_counter_bdr();
+    uint8_t set_gyro_as_batch_count_trigger(bool enable); /// will select accel if enable is false
+    uint8_t set_BDR_counter_threshold(short threshold);
+    short get_BDR_counter_threshold();
+    uint8_t set_INT1_INTERRUPT(INTERRUPTS interrupt, bool enable);
+    uint8_t set_INT2_INTERRUPT(INTERRUPTS interrupt, bool enable);
     byte who_am_i();
     uint8_t set_accel_ODR(OUTPUT_DATA_RATES rate);
     uint8_t set_accel_full_scale(ACCEL_FULL_SCALE scale);
     uint8_t set_gyro_ODR(OUTPUT_DATA_RATES rate);
     uint8_t set_gyro_full_scale(GYRO_FULL_SCALE scale);
+    uint8_t set_interrupts_active_low(bool enable);
+    uint8_t set_SPI_as_3_wire(bool enable);
+
+    /**
+     * Register address automatically incremented during a multiple byte access with a
+        serial interface (I²C or SPI). Default value: 1
+     * @param enable
+     * @return
+     */
+    uint8_t enable_auto_address_increment(bool enable);
+    uint8_t software_reset();
+    uint8_t set_gyroscope_sleep(bool enable);
+    /// INT2_on_INT1 - Necessary?
+    uint8_t enable_data_ready_mask(bool enable);
+    uint8_t enable_i2c_interface(bool enable);
+    uint8_t enable_gyro_LPF1(bool enable);
+    uint8_t enable_accel_ultra_low_power(bool enable);
+    uint8_t enable_rounding(bool accelEnable, bool gyroEnable);
+    /// self test stuff ?? (CTRL5_C)
+    /// TRIG_EN, LVL1_EN, LVL2_EN ??
+    u_int8_t enable_accel_high_performance_mode(bool enable);
+    // TODO: gyroscope low pass filter bandwidth
+
+    uint8_t default_configuration();
+
 
     Vector<double> get_accel();
     Vector<double> get_gyro();
@@ -91,7 +118,7 @@ public:
 
 
 
-    uint8_t default_configuration();
+
 
 
 

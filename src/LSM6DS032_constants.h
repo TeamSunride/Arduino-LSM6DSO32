@@ -181,7 +181,20 @@ enum FIFO_MODES {
 };
 
 enum INTERRUPTS {
-    // TODO: add all interrupts
+    /// note: these are the bit indexes of for the INT_CTRL registers
+    DEN_DRDY = 7, /// only on INT1 /// Sends DEN_DRDY (DEN stamped on Sensor Data flag) to INT1 pin ???
+    CNT_BRD = 6, /// Enables COUNTER_BDR_IA interrupt on INT
+    FIFO_FULL = 5, /// Enables FIFO full flag interrupt on INT1 pin
+    FIFO_OVR = 4, /// Enables FIFO overrun interrupt on INT pin.
+
+    /**
+     * Enables FIFO threshold interrupt on INT pin. It can be also used to trigger
+        an IBI when the MIPI I3CSM interface is used.
+     */
+    FIFO_TH = 3,
+    BOOT = 2, /// Enables boot status on INT1 pin
+    DRDY_G = 1, /// data ready interrupt for gyroscope
+    DRDY_XL = 0 /// data ready interrupt for accelerometer
 };
 
 enum OUTPUT_DATA_RATES {
