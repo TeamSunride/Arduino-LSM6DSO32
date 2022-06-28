@@ -7,6 +7,8 @@
 /// Constructors
 LSM6DS032::LSM6DS032(TwoWire *pipe, uint32_t freq) { // constructor for I2C protocol
     device = new I2CProtocol(LSM6DS032_DEFAULT_I2C_ADDRESS, pipe, freq);
+    accel_conversion_factor = 0.0098*0.978; /// Defaults to +- 32g sensitivity
+    gyro_conversion_factor = 0.07; /// defaults to +- 2000dps
 }
 
 LSM6DS032::LSM6DS032(byte chipSelect, SPIClass& spi, SPISettings settings) { // constructor for SPI protocol
@@ -183,6 +185,29 @@ uint8_t LSM6DS032::set_accel_ODR(OUTPUT_DATA_RATES rate) {
 }
 
 uint8_t LSM6DS032::set_accel_full_scale(ACCEL_FULL_SCALE scale) {
+
+    switch (scale) {
+        case (ACCEL_FULL_SCALE::ACCEL_SCALE_4G): {
+            accel_conversion_factor = 0.0098*0.122;
+            break;
+        }
+        case (ACCEL_FULL_SCALE::ACCEL_SCALE_8G): {
+            accel_conversion_factor = 0.0098*0.244;
+            break;
+        }
+        case (ACCEL_FULL_SCALE::ACCEL_SCALE_16G): {
+            accel_conversion_factor = 0.0098*0.488;
+            break;
+        }
+        case (ACCEL_FULL_SCALE::ACCEL_SCALE_32G): {
+            accel_conversion_factor = 0.0098*0.976;
+            break;
+        }
+        default: {
+            accel_conversion_factor = 1;
+            break;
+        }
+    }
     byte data = device->read_reg(LSM6DS032_REGISTER::CTRL1_XL);
     data = data & 0b11110010;
     data = (scale<<2) | data;
@@ -197,6 +222,30 @@ uint8_t LSM6DS032::set_gyro_ODR(OUTPUT_DATA_RATES rate) {
 }
 
 uint8_t LSM6DS032::set_gyro_full_scale(GYRO_FULL_SCALE scale) {
+    switch (scale) { // The 125dps option is not available because that is selected via a different register
+        case (GYRO_FULL_SCALE::GYRO_SCALE_250DPS) : {
+            gyro_conversion_factor=0.001*8.75;
+            break;
+        }
+        case (GYRO_FULL_SCALE::GYRO_SCALE_500DPS) : {
+            gyro_conversion_factor=0.001*17.5;
+            break;
+        }
+        case (GYRO_FULL_SCALE::GYRO_SCALE_1000DPS) : {
+            gyro_conversion_factor=0.001*35;
+            break;
+        }
+        case (GYRO_FULL_SCALE::GYRO_SCALE_2000DPS) : {
+            gyro_conversion_factor=0.001*70;
+            break;
+        }
+        default: {
+            gyro_conversion_factor = 1;
+            break;
+        }
+
+    }
+
     byte data = device->read_reg(LSM6DS032_REGISTER::CTRL2_G);
     data = data & 0b11110000; // bit 1 should be zero also, because we dont just want 125 dps.
     data = (scale<<2) | data;
@@ -270,6 +319,39 @@ uint8_t LSM6DS032::enable_accel_high_performance_mode(bool enable) {
     return device->write_reg(LSM6DS032_REGISTER::CTRL6_C, data);
 }
 
+uint8_t LSM6DS032::gyro_low_pass_filter_bandwidth(byte bandwidth) {
+    byte data = device->read_reg(LSM6DS032_REGISTER::CTRL6_C);
+    data = data & 0b11111000;
+    data = (bandwidth) | data;
+    return device->write_reg(LSM6DS032_REGISTER::CTRL6_C, data);
+}
+
+uint8_t LSM6DS032::enable_gyro_high_performance_mode(bool enable) {
+    byte data = device->read_reg(LSM6DS032_REGISTER::CTRL7_G);
+    setBit(&data, 7, !enable); // enabled is 0.
+    return device->write_reg(LSM6DS032_REGISTER::CTRL7_G, data);
+}
+
+uint8_t LSM6DS032::enable_gyro_high_pass_filter(bool enable) {
+    byte data = device->read_reg(LSM6DS032_REGISTER::CTRL7_G);
+    setBit(&data, 6, enable);
+    return device->write_reg(LSM6DS032_REGISTER::CTRL7_G, data);
+}
+
+uint8_t LSM6DS032::set_gyro_high_pass_filter_cutoff(GYRO_HIGH_PASS_FILTER_CUTOFF cutoff) {
+    byte data = device->read_reg(LSM6DS032_REGISTER::CTRL7_G);
+    data = data & 0b11000010;
+    data = (cutoff<< 4) | data;
+    return device->write_reg(LSM6DS032_REGISTER::CTRL7_G, data);
+}
+
+uint8_t LSM6DS032::enable_accel_offset_block(bool enable) {
+    byte data = device->read_reg(LSM6DS032_REGISTER::CTRL7_G);
+    setBit(&data, 1, enable);
+    return device->write_reg(LSM6DS032_REGISTER::CTRL7_G, data);
+}
+
+
 
 
 uint8_t LSM6DS032::default_configuration() {
@@ -287,9 +369,9 @@ Vector<double> LSM6DS032::get_accel() {
     Vector<double> returnVect = {0, 0, 0};
     byte a[6] = {0};
     device->read_regs(LSM6DS032_REGISTER::OUTX_L_A, a, 6);
-    returnVect[0] = ((short)((a[1]<<8) | a[0])) * LSM6DS032_ACCEL_CONVERSION_FACTOR;
-    returnVect[1] = ((short)((a[3]<<8) | a[2])) * LSM6DS032_ACCEL_CONVERSION_FACTOR;
-    returnVect[2] = ((short)((a[5]<<8) | a[4])) * LSM6DS032_ACCEL_CONVERSION_FACTOR;
+    returnVect[0] = ((short)((a[1]<<8) | a[0])) * accel_conversion_factor;
+    returnVect[1] = ((short)((a[3]<<8) | a[2])) * accel_conversion_factor;
+    returnVect[2] = ((short)((a[5]<<8) | a[4])) * accel_conversion_factor;
     return returnVect;
 }
 
@@ -297,8 +379,10 @@ Vector<double> LSM6DS032::get_gyro() {
     Vector<double> returnVect = {0, 0, 0};
     byte a[6] = {0};
     device->read_regs(LSM6DS032_REGISTER::OUTX_L_G, a, 6);
-    returnVect[0] = ((short)((a[1]<<8) | a[0])) * LSM6DS032_GYRO_CONVERSION_FACTOR;
-    returnVect[1] = ((short)((a[3]<<8) | a[2])) * LSM6DS032_GYRO_CONVERSION_FACTOR;
-    returnVect[2] = ((short)((a[5]<<8) | a[4])) * LSM6DS032_GYRO_CONVERSION_FACTOR;
+    returnVect[0] = ((short)((a[1]<<8) | a[0])) * gyro_conversion_factor;
+    returnVect[1] = ((short)((a[3]<<8) | a[2])) * gyro_conversion_factor;
+    returnVect[2] = ((short)((a[5]<<8) | a[4])) * gyro_conversion_factor;
     return returnVect;
 }
+
+

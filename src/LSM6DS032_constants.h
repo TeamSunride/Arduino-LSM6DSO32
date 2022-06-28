@@ -14,8 +14,7 @@
 #define READ_BYTE 0b10000000
 
 #define LSM6DS032_DEFAULT_I2C_ADDRESS 0x6A // from back of adafruit breakout board
-#define LSM6DS032_ACCEL_CONVERSION_FACTOR 0.0098 // from datasheet
-#define LSM6DS032_GYRO_CONVERSION_FACTOR 1 // TODO: WHAT IS THIS CONVERSION FACTOR
+
 
 enum UNCOMPRESSED_DATA_BATCHING_RATES {
     /**
@@ -224,6 +223,20 @@ enum GYRO_FULL_SCALE {
     GYRO_SCALE_500DPS = 0b01,
     GYRO_SCALE_1000DPS = 0b10,
     GYRO_SCALE_2000DPS = 0b11
+};
+
+enum GYRO_HIGH_PASS_FILTER_CUTOFF {
+    /**
+     * Gyroscope digital HP filter cutoff selection. Default: 00
+        (00: 16 mHz;
+        01: 65 mHz;
+        10: 260 mHz;
+        11: 1.04 Hz) // Datasheet 9.18 - Pretty sure they mean 1.04 GHz??
+     */
+    GYRO_HPFC_16_MHZ = 0b00,
+    GYRO_HPFC_65_MHZ = 0b01,
+    GYRO_HPFC_260_MHZ = 0b10,
+    GYRO_HPFC_1_04_GHZ = 0b11 // the datasheet says "1.04 Hz" but that looks like a mistake
 };
 
 #endif //ARDUINO_LSM6DS032_LSM6DS032_CONSTANTS_H

@@ -18,6 +18,8 @@
 class LSM6DS032 { // This could maybe be a child of the IMU class??
 protected:
     protocol* device;
+    double accel_conversion_factor;
+    double gyro_conversion_factor;
 public:
     LSM6DS032(TwoWire *pipe, uint32_t freq); // constructor overload for I2C protocol
     LSM6DS032(byte chipSelect, SPIClass& spi, SPISettings settings); // constructor overload for SPI protocol
@@ -106,7 +108,29 @@ public:
     /// self test stuff ?? (CTRL5_C)
     /// TRIG_EN, LVL1_EN, LVL2_EN ??
     u_int8_t enable_accel_high_performance_mode(bool enable);
-    // TODO: gyroscope low pass filter bandwidth
+    /// Weight of user offsets
+
+    /**
+     * Gyroscope low pass filter bandwidth - Datasheet 9.17 - pg 72 - Table 60
+     * FTYPE [2:0]|   12.5 Hz  |  26 Hz  |   52 Hz   |   104 Hz   |   208 Hz   |   416 Hz   |   833 Hz   |   1.67 kHz   |   3.33 kHz   |   6.67 kHz
+     *
+        000       |   4.2      |  8.3    |   16.6    |   33.0     |   67.0     |   136.6    |   239.2    |   304.2      |   328.5      |   335.5
+        001       |   4.2      |  8.3    |   16.6    |   33.0     |   67.0     |   130.5    |   192.4    |   220.7      |   229.6      |   232.0
+        010       |   4.2      |  8.3    |   16.6    |   33.0     |   67.0     |   120.3    |   154.2    |   166.6      |   170.1      |   171.1
+        011       |   4.2      |  8.3    |   16.6    |   33.0     |   67.0     |   137.1    |   281.8    |   453.2      |   559.2      |   609.0
+        100       |   4.2      |  8.3    |   16.7    |   33.0     |   62.4     |   86.7     |   96.6     |   99.6       |   100.4      |   100.6
+        101       |   4.2      |  8.3    |   16.8    |   31.0     |   43.2     |   48.0     |   49.4     |   49.8       |   49.9       |   49.9
+        110       |   4.1      |  7.8    |   13.4    |   19.0     |   23.1     |   24.6     |   25.0     |   25.1       |   25.1       |   25.1
+        111       |   3.9      |  6.7    |   9.7     |   11.5     |   12.2     |   12.4     |   12.5     |   12.5       |   12.5       |   12.5
+     * @param bandwidth
+     * @return
+     */
+    uint8_t gyro_low_pass_filter_bandwidth(byte bandwidth);
+    uint8_t enable_gyro_high_performance_mode(bool enable);
+    uint8_t enable_gyro_high_pass_filter(bool enable);
+    uint8_t set_gyro_high_pass_filter_cutoff(GYRO_HIGH_PASS_FILTER_CUTOFF cutoff);
+    uint8_t enable_accel_offset_block(bool enable);
+
 
     uint8_t default_configuration();
 
