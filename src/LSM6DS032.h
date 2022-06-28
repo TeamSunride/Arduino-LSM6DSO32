@@ -87,6 +87,8 @@ public:
     uint8_t set_accel_full_scale(ACCEL_FULL_SCALE scale);
     uint8_t set_gyro_ODR(OUTPUT_DATA_RATES rate);
     uint8_t set_gyro_full_scale(GYRO_FULL_SCALE scale);
+
+    uint8_t enable_LPF2(bool enable);
     uint8_t set_interrupts_active_low(bool enable);
     uint8_t set_SPI_as_3_wire(bool enable);
 
@@ -94,7 +96,7 @@ public:
      * Register address automatically incremented during a multiple byte access with a
         serial interface (I²C or SPI). Default value: 1
      * @param enable
-     * @return
+     * @return Status Code (0 for success)
      */
     uint8_t enable_auto_address_increment(bool enable);
     uint8_t software_reset();
@@ -123,7 +125,7 @@ public:
         110       |   4.1      |  7.8    |   13.4    |   19.0     |   23.1     |   24.6     |   25.0     |   25.1       |   25.1       |   25.1
         111       |   3.9      |  6.7    |   9.7     |   11.5     |   12.2     |   12.4     |   12.5     |   12.5       |   12.5       |   12.5
      * @param bandwidth
-     * @return
+     * @return Status Code (0 for success)
      */
     uint8_t gyro_low_pass_filter_bandwidth(byte bandwidth);
     uint8_t enable_gyro_high_performance_mode(bool enable);
@@ -131,12 +133,36 @@ public:
     uint8_t set_gyro_high_pass_filter_cutoff(GYRO_HIGH_PASS_FILTER_CUTOFF cutoff);
     uint8_t enable_accel_offset_block(bool enable);
 
+    uint8_t set_accel_high_pass_or_LPF2_filter_cutoff(ACCEL_HP_OR_LPF2_CUTOFF cutoff);
+    uint8_t enable_accel_high_pass_filter_reference_mode(bool enable);
+    uint8_t enable_accel_fast_settling_mode(bool enable);
+    uint8_t accel_high_pass_selection(bool select);
+    /// LOW_PASS_ON_6D: omit?
+
+    // TODO: WHAT IS DATA ENABLE (DEN) ?? - CTRL9_XL
+    uint8_t timestamp_counter_enable(bool enable);
+    /// ALL_INT_SRC
+    /// WAKE_UP_SRC
+    /// TAP_SRC
+    /// D6D_SRC
+    /// STATUS_REG
+    short get_temperature();
+    Vector<double> get_gyro();
+    Vector<double> get_accel();
+    uint32_t get_timestamp(); /// Best representation? - resolution is 25us / LSB
+    /// A bunch of "TAP" and "WAKE_UP" registers - not being implemented as they are not useful in a rocket context
+
+
+
+
+
+
+
 
     uint8_t default_configuration();
 
 
-    Vector<double> get_accel();
-    Vector<double> get_gyro();
+
 
 
 

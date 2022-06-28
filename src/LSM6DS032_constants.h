@@ -239,4 +239,15 @@ enum GYRO_HIGH_PASS_FILTER_CUTOFF {
     GYRO_HPFC_1_04_GHZ = 0b11 // the datasheet says "1.04 Hz" but that looks like a mistake
 };
 
+enum ACCEL_HP_OR_LPF2_CUTOFF {
+    ODR_OVER_4 = 0b000,
+    ODR_OVER_10 = 0b001,
+    ODR_OVER_20 = 0b010,
+    ODR_OVER_45 = 0b011,
+    ODR_OVER_100 = 0b100,
+    ODR_OVER_200 = 0b101,
+    ODR_OVER_400 = 0b110,
+    ODR_OVER_800 = 0b111
+};
+
 #endif //ARDUINO_LSM6DS032_LSM6DS032_CONSTANTS_H

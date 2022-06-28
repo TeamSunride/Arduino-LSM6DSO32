@@ -9,6 +9,7 @@ LSM6DS032::LSM6DS032(TwoWire *pipe, uint32_t freq) { // constructor for I2C prot
     device = new I2CProtocol(LSM6DS032_DEFAULT_I2C_ADDRESS, pipe, freq);
     accel_conversion_factor = 0.0098*0.978; /// Defaults to +- 32g sensitivity
     gyro_conversion_factor = 0.07; /// defaults to +- 2000dps
+    enable_sdo_pullup(true); // pullup for i2c SDA/SDO line - probably best to use external ones
 }
 
 LSM6DS032::LSM6DS032(byte chipSelect, SPIClass& spi, SPISettings settings) { // constructor for SPI protocol
@@ -252,6 +253,12 @@ uint8_t LSM6DS032::set_gyro_full_scale(GYRO_FULL_SCALE scale) {
     return device->write_reg(LSM6DS032_REGISTER::CTRL2_G, data);
 }
 
+uint8_t LSM6DS032::enable_LPF2(bool enable) {
+    byte data = device->read_reg(LSM6DS032_REGISTER::CTRL1_XL);
+    setBit(&data, 1, enable);
+    return device->write_reg(LSM6DS032_REGISTER::CTRL1_XL, data);
+}
+
 uint8_t LSM6DS032::set_interrupts_active_low(bool enable) {
     byte data = device->read_reg(LSM6DS032_REGISTER::CTRL3_C);
     setBit(&data, 5, enable);
@@ -315,7 +322,7 @@ uint8_t LSM6DS032::enable_rounding(bool accelEnable, bool gyroEnable) {
 
 uint8_t LSM6DS032::enable_accel_high_performance_mode(bool enable) {
     byte data = device->read_reg(LSM6DS032_REGISTER::CTRL6_C);
-    setBit(&data, 4, enable);
+    setBit(&data, 4, !enable);
     return device->write_reg(LSM6DS032_REGISTER::CTRL6_C, data);
 }
 
@@ -351,29 +358,46 @@ uint8_t LSM6DS032::enable_accel_offset_block(bool enable) {
     return device->write_reg(LSM6DS032_REGISTER::CTRL7_G, data);
 }
 
-
-
-
-uint8_t LSM6DS032::default_configuration() {
-    set_fifo_watermark(511);
-    set_accel_ODR(OUTPUT_DATA_RATES::ODR_1667_HZ);
-    set_accel_full_scale(ACCEL_FULL_SCALE::ACCEL_SCALE_32G);
-    set_gyro_ODR(OUTPUT_DATA_RATES::ODR_1667_HZ);
-    set_gyro_full_scale(GYRO_FULL_SCALE::GYRO_SCALE_2000DPS);
-    set_gyro_as_batch_count_trigger(false); // use the XL as batch count trigger
-
-    return 0;
+uint8_t LSM6DS032::set_accel_high_pass_or_LPF2_filter_cutoff(ACCEL_HP_OR_LPF2_CUTOFF cutoff) {
+    byte data = device->read_reg(LSM6DS032_REGISTER::CTRL8_XL);
+    data = data & 0b00011101;
+    data = (cutoff<<5) | data;
+    return device->write_reg(LSM6DS032_REGISTER::CTRL8_XL, data);
 }
 
-Vector<double> LSM6DS032::get_accel() {
-    Vector<double> returnVect = {0, 0, 0};
-    byte a[6] = {0};
-    device->read_regs(LSM6DS032_REGISTER::OUTX_L_A, a, 6);
-    returnVect[0] = ((short)((a[1]<<8) | a[0])) * accel_conversion_factor;
-    returnVect[1] = ((short)((a[3]<<8) | a[2])) * accel_conversion_factor;
-    returnVect[2] = ((short)((a[5]<<8) | a[4])) * accel_conversion_factor;
-    return returnVect;
+uint8_t LSM6DS032::enable_accel_high_pass_filter_reference_mode(bool enable) {
+    byte data = device->read_reg(LSM6DS032_REGISTER::CTRL8_XL);
+    setBit(&data, 4, enable);
+    return device->write_reg(LSM6DS032_REGISTER::CTRL8_XL, data);
 }
+
+uint8_t LSM6DS032::enable_accel_fast_settling_mode(bool enable) {
+    byte data = device->read_reg(LSM6DS032_REGISTER::CTRL8_XL);
+    setBit(&data, 3, enable);
+    return device->write_reg(LSM6DS032_REGISTER::CTRL8_XL, data);
+}
+
+uint8_t LSM6DS032::accel_high_pass_selection(bool select) {
+    /**
+     *  0 for low-pass (LPF2), 1 for high pass
+     */
+    byte data = device->read_reg(LSM6DS032_REGISTER::CTRL8_XL);
+    setBit(&data, 2, select);
+    return device->write_reg(LSM6DS032_REGISTER::CTRL8_XL, data);
+}
+
+uint8_t LSM6DS032::timestamp_counter_enable(bool enable) {
+    byte data = device->read_reg(LSM6DS032_REGISTER::CTRL10_C);
+    setBit(&data, 5, enable);
+    return device->write_reg(LSM6DS032_REGISTER::CTRL10_C, data);
+}
+
+short LSM6DS032::get_temperature() {
+    byte data[2] = {};
+    device->read_regs(LSM6DS032_REGISTER::OUT_TEMP_L, data, 2);
+    return (short)((data[1]<<8) | data[0]);
+}
+
 
 Vector<double> LSM6DS032::get_gyro() {
     Vector<double> returnVect = {0, 0, 0};
@@ -385,4 +409,67 @@ Vector<double> LSM6DS032::get_gyro() {
     return returnVect;
 }
 
+
+Vector<double> LSM6DS032::get_accel() {
+    Vector<double> returnVect = {0, 0, 0};
+    byte a[6] = {0};
+    device->read_regs(LSM6DS032_REGISTER::OUTX_L_A, a, 6);
+    returnVect[0] = ((short)((a[1]<<8) | a[0])) * accel_conversion_factor;
+    returnVect[1] = ((short)((a[3]<<8) | a[2])) * accel_conversion_factor;
+    returnVect[2] = ((short)((a[5]<<8) | a[4])) * accel_conversion_factor;
+    return returnVect;
+}
+
+uint32_t LSM6DS032::get_timestamp() {
+    byte data[4] = {};
+    device->read_regs(LSM6DS032_REGISTER::TIMESTAMP0, data, 4);
+    return (uint32_t)((data[3]<<24) | (data[2]<<16) | (data[1]<<8) | data[0]);
+}
+
+
+uint8_t LSM6DS032::default_configuration() {
+    software_reset();
+    set_fifo_watermark(256);
+    stop_on_WTM(false);
+    /// FIFO compression
+
+    /// BATCHING DATA RATES
+    /// FIFO MODE
+
+    //set_dataready_pulsed(true);
+    set_gyro_as_batch_count_trigger(false); // using accel instead
+    /// BDR threshold
+    /// INT1, INT2
+
+
+    set_accel_ODR(OUTPUT_DATA_RATES::ODR_6667_HZ);
+    set_accel_full_scale(ACCEL_FULL_SCALE::ACCEL_SCALE_32G);
+    set_gyro_ODR(OUTPUT_DATA_RATES::ODR_6667_HZ);
+    set_gyro_full_scale(GYRO_FULL_SCALE::GYRO_SCALE_2000DPS);
+    set_interrupts_active_low(false);
+    set_SPI_as_3_wire(false);
+
+    enable_auto_address_increment(true);
+    enable_data_ready_mask(true);
+    enable_i2c_interface(true);
+    enable_gyro_LPF1(true);
+    enable_rounding(false, false); // rounding??
+    enable_accel_high_performance_mode(true);
+    gyro_low_pass_filter_bandwidth(0b000);
+    enable_gyro_high_performance_mode(true);
+    enable_gyro_high_pass_filter(false);
+
+    accel_high_pass_selection(true);
+    set_accel_high_pass_or_LPF2_filter_cutoff(ACCEL_HP_OR_LPF2_CUTOFF::ODR_OVER_4);
+
+
+
+
+
+    timestamp_counter_enable(true);
+
+
+
+    return 0;
+}
 
