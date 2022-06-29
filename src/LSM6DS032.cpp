@@ -91,7 +91,12 @@ uint8_t LSM6DS032::enable_fifo_compression_runtime(bool enable) { // for enablin
 }
 
 uint8_t LSM6DS032::enable_fifo_compression(bool enable) {
-    // TODO: enable_fifo_compression - requires embedded functions access.
+    enable_embedded_functions(true);
+    byte data = device->read_reg(LSM6DS032_EMBEDDED_REGISTER::EMB_FUNC_EN_B);
+    setBit(&data, 3, enable);
+    uint8_t stat = device->write_reg(LSM6DS032_EMBEDDED_REGISTER::EMB_FUNC_EN_B, data);
+    enable_embedded_functions(false);
+    return stat;
 }
 
 
@@ -273,7 +278,7 @@ uint8_t LSM6DS032::set_SPI_as_3_wire(bool enable) {
 
 uint8_t LSM6DS032::enable_auto_address_increment(bool enable) {
     byte data = device->read_reg(LSM6DS032_REGISTER::CTRL3_C);
-    setBit(&data, 1, enable);
+    setBit(&data, 2, enable);
     return device->write_reg(LSM6DS032_REGISTER::CTRL3_C, data);
 }
 
@@ -326,7 +331,7 @@ uint8_t LSM6DS032::enable_accel_high_performance_mode(bool enable) {
     return device->write_reg(LSM6DS032_REGISTER::CTRL6_C, data);
 }
 
-uint8_t LSM6DS032::gyro_low_pass_filter_bandwidth(byte bandwidth) {
+uint8_t LSM6DS032::gyro_LPF1_bandwidth(byte bandwidth) {
     byte data = device->read_reg(LSM6DS032_REGISTER::CTRL6_C);
     data = data & 0b11111000;
     data = (bandwidth) | data;
@@ -427,16 +432,52 @@ uint32_t LSM6DS032::get_timestamp() {
 }
 
 
+uint8_t LSM6DS032::fifo_pop(FIFO<Vector<double>>& accFIFO, FIFO<Vector<double>>& gyrFIFO) {
+    byte data[7] = {};
+    device->read_regs(LSM6DS032_REGISTER::FIFO_DATA_OUT_TAG, data, 7);
+    byte tag = data[0] >> 3;
+    Serial.printf("%X\n", tag);
+    switch (tag) {
+        case (FIFO_TAG::GYRO_NC): {
+            double x = (short)((data[2]<<8) | data[1]) * gyro_conversion_factor;
+            double y = (short)((data[4]<<8) | data[3]) * gyro_conversion_factor;
+            double z = (short)((data[6]<<8) | data[5]) * gyro_conversion_factor;
+            gyrFIFO.push({x,y,z});
+            break;
+        }
+        case(FIFO_TAG::ACCEL_NC): {
+            double x = (short)((data[2]<<8) | data[1]) * accel_conversion_factor;
+            double y = (short)((data[4]<<8) | data[3]) * accel_conversion_factor;
+            double z = (short)((data[6]<<8) | data[5]) * accel_conversion_factor;
+            accFIFO.push({x,y,z});
+            break;
+        }
+
+    }
+
+}
+
+
+
 uint8_t LSM6DS032::default_configuration() {
     software_reset();
     set_fifo_watermark(256);
     stop_on_WTM(false);
     /// FIFO compression
+    set_uncompressed_data_rate(UNCOMPRESSED_DATA_BATCHING_RATES::UNCOPTR_0);
 
+
+    enable_fifo_compression(true);
+    enable_fifo_compression_runtime(true);
     /// BATCHING DATA RATES
-    /// FIFO MODE
 
-    //set_dataready_pulsed(true);
+    set_batching_data_rates(BATCHING_DATA_RATES::BDR_104Hz, BATCHING_DATA_RATES::BDR_104Hz); // accel, gyro
+    set_timestamp_batching_decimation(TIMESTAMP_BATCHING_DECIMATION::DECIMATION_32);
+
+    /// FIFO MODE
+    set_fifo_mode(FIFO_MODES::FIFO_MODE);
+
+    set_dataready_pulsed(true);
     set_gyro_as_batch_count_trigger(false); // using accel instead
     /// BDR threshold
     /// INT1, INT2
@@ -452,15 +493,24 @@ uint8_t LSM6DS032::default_configuration() {
     enable_auto_address_increment(true);
     enable_data_ready_mask(true);
     enable_i2c_interface(true);
-    enable_gyro_LPF1(true);
-    enable_rounding(false, false); // rounding??
-    enable_accel_high_performance_mode(true);
-    gyro_low_pass_filter_bandwidth(0b000);
-    enable_gyro_high_performance_mode(true);
-    enable_gyro_high_pass_filter(false);
+    enable_gyro_LPF1(false);
+    //enable_rounding(false, false); // rounding??
+    enable_accel_high_performance_mode(true); /// The cutoff value of the LPF1 output is ODR/2 when the accelerometer is in high-performance mode. This
+                                              ///  value is equal to 700 Hz when the accelerometer is in low-power or normal mode.
 
-    accel_high_pass_selection(true);
-    set_accel_high_pass_or_LPF2_filter_cutoff(ACCEL_HP_OR_LPF2_CUTOFF::ODR_OVER_4);
+
+    enable_gyro_high_performance_mode(true);
+    gyro_LPF1_bandwidth(0b111);
+    enable_gyro_high_pass_filter(true);
+    set_gyro_high_pass_filter_cutoff(GYRO_HIGH_PASS_FILTER_CUTOFF::GYRO_HPFC_16_MHZ);
+
+    enable_LPF2(true);
+    accel_high_pass_selection(false); // lpf2
+    set_accel_high_pass_or_LPF2_filter_cutoff(ACCEL_HP_OR_LPF2_CUTOFF::ODR_OVER_800);
+    enable_accel_fast_settling_mode(true);
+
+
+
 
 
 

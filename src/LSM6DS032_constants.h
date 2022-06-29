@@ -183,7 +183,7 @@ enum INTERRUPTS {
     /// note: these are the bit indexes of for the INT_CTRL registers
     DEN_DRDY = 7, /// only on INT1 /// Sends DEN_DRDY (DEN stamped on Sensor Data flag) to INT1 pin ???
     CNT_BRD = 6, /// Enables COUNTER_BDR_IA interrupt on INT
-    FIFO_FULL = 5, /// Enables FIFO full flag interrupt on INT1 pin
+    FIFO_IS_FULL = 5, /// Enables FIFO full flag interrupt on INT1 pin
     FIFO_OVR = 4, /// Enables FIFO overrun interrupt on INT pin.
 
     /**
@@ -248,6 +248,28 @@ enum ACCEL_HP_OR_LPF2_CUTOFF {
     ODR_OVER_200 = 0b101,
     ODR_OVER_400 = 0b110,
     ODR_OVER_800 = 0b111
+};
+
+enum FIFO_TAG {
+    GYRO_NC = 0x01,
+    ACCEL_NC = 0x02,
+    TEMPERATURE = 0x03,
+    TIMESTAMP = 0x04,
+    CFG_CHANGE = 0x05,
+    ACCEL_NC_T_2 = 0x06,
+    ACCEL_NC_T_1 = 0x07,
+    ACCEL_2_X_C = 0x08,
+    ACCEL_3_X_C = 0x09,
+    GYRO_NC_T_2 = 0x0A,
+    GYRO_NC_T_1 = 0x0B,
+    GYRO_2_X_C = 0x0C,
+    GYRO_3_X_C = 0x0D,
+    SENSOR_HUB_SLAVE_0 = 0x0E,
+    SENSOR_HUB_SLAVE_1 = 0x0F,
+    SENSOR_HUB_SLAVE_2 = 0x10,
+    SENSOR_HUB_SLAVE_3 = 0x11,
+    STEP_COUNTER = 0x12,
+    SENSOR_HUB_NACK = 0x19
 };
 
 #endif //ARDUINO_LSM6DS032_LSM6DS032_CONSTANTS_H

@@ -8,6 +8,7 @@
 #include "LSM6DS032_registers.h"
 #include "LSM6DS032_constants.h"
 #include "Vector.h"
+#include "FIFO.h"
 
 /*
  * Datasheet: https://www.st.com/resource/en/datasheet/lsm6dso32.pdf
@@ -127,7 +128,7 @@ public:
      * @param bandwidth
      * @return Status Code (0 for success)
      */
-    uint8_t gyro_low_pass_filter_bandwidth(byte bandwidth);
+    uint8_t gyro_LPF1_bandwidth(byte bandwidth);
     uint8_t enable_gyro_high_performance_mode(bool enable);
     uint8_t enable_gyro_high_pass_filter(bool enable);
     uint8_t set_gyro_high_pass_filter_cutoff(GYRO_HIGH_PASS_FILTER_CUTOFF cutoff);
@@ -152,7 +153,8 @@ public:
     uint32_t get_timestamp(); /// Best representation? - resolution is 25us / LSB
     /// A bunch of "TAP" and "WAKE_UP" registers - not being implemented as they are not useful in a rocket context
 
-
+    // TODO: FIFO stuff
+    uint8_t fifo_pop(FIFO<Vector<double>>& accFIFO, FIFO<Vector<double>>& gyrFIFO);
 
 
 

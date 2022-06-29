@@ -92,5 +92,10 @@ enum LSM6DS032_REGISTER { // Registers are scoped to avoid confusion with other 
 };
 
 
+enum LSM6DS032_EMBEDDED_REGISTER { // only including the ones I need.
+    EMB_FUNC_EN_B = 0x05
+};
+
+
 
 #endif //LSM6DS032_REGISTERS_H

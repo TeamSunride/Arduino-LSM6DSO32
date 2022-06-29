@@ -14,19 +14,24 @@
 
 /* Usage */
 #define CS_pin 10
-//SPISettings settings = SPISettings(4000000, MSBFIRST, SPI_MODE0);
-//LSM6DS032 LSM(CS_pin, SPI, settings);
+SPISettings settings = SPISettings(4000000, MSBFIRST, SPI_MODE0);
+LSM6DS032 LSM(CS_pin, SPI, settings);
 //LSM6DS032 LSM(&Wire, 1000000);
-void setup() {
-    Serial.begin(9600);
+FIFO<Vector<double>> accFIFO(256);
+FIFO<Vector<double>> gyrFIFO(256);
 
-//    LSM.begin();
-//    LSM.default_configuration();
+
+void setup() {
+    Serial.begin(115200);
+
+    LSM.begin();
+    LSM.default_configuration();
 }
 
 
 void loop() {
-//    Vector<double> acc = LSM.get_accel();
-//    Serial.printf("%lf, %lf, %lf\n", acc[0], acc[1], acc[2]);
-//    delay(1);
+
+    LSM.fifo_pop();
+
+    delay(3);
 }
