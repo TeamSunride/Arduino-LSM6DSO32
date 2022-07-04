@@ -4,7 +4,7 @@
 #include "LSM6DS032_registers.h"
 #include "LSM6DS032.h"
 #include <Wire.h>
-#include "Vector.h"
+#include "Fifo.h"
 
 /*
  * Datasheet: https://www.st.com/resource/en/datasheet/lsm6dso32.pdf
@@ -17,13 +17,14 @@
 SPISettings settings = SPISettings(4000000, MSBFIRST, SPI_MODE0);
 LSM6DS032 LSM(CS_pin, SPI, settings);
 //LSM6DS032 LSM(&Wire, 1000000);
-FIFO<Vector<double>> accFIFO(256);
-FIFO<Vector<double>> gyrFIFO(256);
+Fifo<Vector<double>> accFifo(128);
+Fifo<Vector<double>> gyrFifo(128);
 
 
 void setup() {
+    delay(1000);
     Serial.begin(115200);
-
+    Vector<double> a(3);
     LSM.begin();
     LSM.default_configuration();
 }
@@ -31,7 +32,9 @@ void setup() {
 
 void loop() {
 
-    LSM.fifo_pop();
+    LSM.fifo_pop(accFifo, gyrFifo);
+//    Vector<double> acc = accFifo.pop();
+//    Serial.printf("%lf, %lf, %lf\n", acc[0], acc[1], acc[2]);
 
-    delay(3);
+    delayMicroseconds(150);
 }

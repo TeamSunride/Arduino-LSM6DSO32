@@ -2,7 +2,6 @@
 // Created by robos on 23/06/2022.
 //
 #include "LSM6DS032.h"
-#include "Vector.h"
 
 /// Constructors
 LSM6DS032::LSM6DS032(TwoWire *pipe, uint32_t freq) { // constructor for I2C protocol
@@ -432,28 +431,116 @@ uint32_t LSM6DS032::get_timestamp() {
 }
 
 
-uint8_t LSM6DS032::fifo_pop(FIFO<Vector<double>>& accFIFO, FIFO<Vector<double>>& gyrFIFO) {
+uint8_t LSM6DS032::fifo_pop(Fifo<Vector<double>>& accFifo, Fifo<Vector<double>>& gyrFifo) {
     byte data[7] = {};
     device->read_regs(LSM6DS032_REGISTER::FIFO_DATA_OUT_TAG, data, 7);
     byte tag = data[0] >> 3;
-    Serial.printf("%X\n", tag);
+    Serial.printf("\n%X\n", tag);
+
     switch (tag) {
-        case (FIFO_TAG::GYRO_NC): {
+        case (FIFO_TAG::GYRO_NC):
+        {
             double x = (short)((data[2]<<8) | data[1]) * gyro_conversion_factor;
             double y = (short)((data[4]<<8) | data[3]) * gyro_conversion_factor;
             double z = (short)((data[6]<<8) | data[5]) * gyro_conversion_factor;
-            gyrFIFO.push({x,y,z});
+            //gyrFifo.push({x,y,z});
+            Serial.printf("%lf, %lf, %lf", x, y, z);
             break;
         }
-        case(FIFO_TAG::ACCEL_NC): {
+        case(FIFO_TAG::ACCEL_NC):
+        {
             double x = (short)((data[2]<<8) | data[1]) * accel_conversion_factor;
             double y = (short)((data[4]<<8) | data[3]) * accel_conversion_factor;
             double z = (short)((data[6]<<8) | data[5]) * accel_conversion_factor;
-            accFIFO.push({x,y,z});
+            //accFifo.push({x,y,z});
+            Serial.printf("%lf, %lf, %lf", x, y, z);
+
+            break;
+        }
+        // temperature
+        // timestamp
+        // cfg change
+        case(FIFO_TAG::ACCEL_NC_T_2):
+        {
+            double x = (short)((data[2]<<8) | data[1]) * accel_conversion_factor;
+            double y = (short)((data[4]<<8) | data[3]) * accel_conversion_factor;
+            double z = (short)((data[6]<<8) | data[5]) * accel_conversion_factor;
+            //accFifo.push({x,y,z});
+            Serial.printf("%lf, %lf, %lf", x, y, z);
+
+            break;
+        }
+        case(FIFO_TAG::ACCEL_NC_T_1):
+        {
+            double x = (short)((data[2]<<8) | data[1]) * accel_conversion_factor;
+            double y = (short)((data[4]<<8) | data[3]) * accel_conversion_factor;
+            double z = (short)((data[6]<<8) | data[5]) * accel_conversion_factor;
+            //accFifo.push({x,y,z});
+            Serial.printf("%lf, %lf, %lf", x, y, z);
+
+            break;
+        }
+        case(FIFO_TAG::ACCEL_2_X_C):
+        {
+            double x = (short)((data[2]<<8) | data[1]) * accel_conversion_factor;
+            double y = (short)((data[4]<<8) | data[3]) * accel_conversion_factor;
+            double z = (short)((data[6]<<8) | data[5]) * accel_conversion_factor;
+            //accFifo.push({x,y,z});
+            Serial.printf("%lf, %lf, %lf", x, y, z);
+
+            break;
+        }
+        case(FIFO_TAG::ACCEL_3_X_C):
+        {
+            double x = (short)((data[2]<<8) | data[1]) * accel_conversion_factor;
+            double y = (short)((data[4]<<8) | data[3]) * accel_conversion_factor;
+            double z = (short)((data[6]<<8) | data[5]) * accel_conversion_factor;
+            //accFifo.push({x,y,z});
+            Serial.printf("%lf, %lf, %lf", x, y, z);
+
+            break;
+        }
+        case (FIFO_TAG::GYRO_NC_T_2):
+        {
+            double x = (short)((data[2]<<8) | data[1]) * gyro_conversion_factor;
+            double y = (short)((data[4]<<8) | data[3]) * gyro_conversion_factor;
+            double z = (short)((data[6]<<8) | data[5]) * gyro_conversion_factor;
+            //gyrFifo.push({x,y,z});
+            Serial.printf("%lf, %lf, %lf", x, y, z);
+            break;
+        }
+        case (FIFO_TAG::GYRO_NC_T_1):
+        {
+            double x = (short)((data[2]<<8) | data[1]) * gyro_conversion_factor;
+            double y = (short)((data[4]<<8) | data[3]) * gyro_conversion_factor;
+            double z = (short)((data[6]<<8) | data[5]) * gyro_conversion_factor;
+            //gyrFifo.push({x,y,z});
+            Serial.printf("%lf, %lf, %lf", x, y, z);
+            break;
+        }
+        case (FIFO_TAG::GYRO_2_X_C):
+        {
+            double x = (short)((data[2]<<8) | data[1]) * gyro_conversion_factor;
+            double y = (short)((data[4]<<8) | data[3]) * gyro_conversion_factor;
+            double z = (short)((data[6]<<8) | data[5]) * gyro_conversion_factor;
+            //gyrFifo.push({x,y,z});
+            Serial.printf("%lf, %lf, %lf", x, y, z);
+            break;
+        }
+        case (FIFO_TAG::GYRO_3_X_C):
+        {
+            double x = (short)((data[2]<<8) | data[1]) * gyro_conversion_factor;
+            double y = (short)((data[4]<<8) | data[3]) * gyro_conversion_factor;
+            double z = (short)((data[6]<<8) | data[5]) * gyro_conversion_factor;
+            //gyrFifo.push({x,y,z});
+            Serial.printf("%lf, %lf, %lf", x, y, z);
             break;
         }
 
+
+
     }
+    return 0;
 
 }
 
@@ -471,7 +558,7 @@ uint8_t LSM6DS032::default_configuration() {
     enable_fifo_compression_runtime(true);
     /// BATCHING DATA RATES
 
-    set_batching_data_rates(BATCHING_DATA_RATES::BDR_104Hz, BATCHING_DATA_RATES::BDR_104Hz); // accel, gyro
+    set_batching_data_rates(BATCHING_DATA_RATES::BDR_6667Hz, BATCHING_DATA_RATES::BDR_6667Hz); // accel, gyro
     set_timestamp_batching_decimation(TIMESTAMP_BATCHING_DECIMATION::DECIMATION_32);
 
     /// FIFO MODE

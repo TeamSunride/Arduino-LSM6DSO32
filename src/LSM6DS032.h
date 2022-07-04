@@ -8,7 +8,8 @@
 #include "LSM6DS032_registers.h"
 #include "LSM6DS032_constants.h"
 #include "Vector.h"
-#include "FIFO.h"
+#include "Fifo.h"
+
 
 /*
  * Datasheet: https://www.st.com/resource/en/datasheet/lsm6dso32.pdf
@@ -154,7 +155,7 @@ public:
     /// A bunch of "TAP" and "WAKE_UP" registers - not being implemented as they are not useful in a rocket context
 
     // TODO: FIFO stuff
-    uint8_t fifo_pop(FIFO<Vector<double>>& accFIFO, FIFO<Vector<double>>& gyrFIFO);
+    uint8_t fifo_pop(Fifo<Vector<double>>& accFifo, Fifo<Vector<double>>& gyrFifo);
 
 
 
