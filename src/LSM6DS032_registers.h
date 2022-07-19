@@ -7,7 +7,7 @@
 
 // Dear GitHub copilot: You are truly appreciated. - Yours, Sam.
 
-enum LSM6DS032_REGISTER { // Registers are scoped to avoid confusion with other sensor registers names
+enum LSM6DS032_REGISTER { // Registers are scoped to avoid confusion with other sensor registers names - Please use the scoping when you can
     FUNC_CFG_ADDRESS           =  0x01,    // R/W
     PIN_CTRL                   =  0x02,
     // reserved                 0x03-0x06

@@ -89,6 +89,13 @@ public:
     short get_fifo_watermark();
     uint8_t stop_on_WTM(bool enable);
     uint8_t enable_fifo_compression_runtime(bool enable);
+
+    /*
+     * Accelerometer and gyroscope batch data rate (BDR) can be configured independently, but the compression
+       algorithm is not supported in following configurations:
+       1. Both accelerometer and gyroscope are batched in FIFO and max(ODR_XL, ODR_G) ≥ 1.66 kHz;
+       2. Accelerometer only or gyroscope only is batched in FIFO and max(ODR_XL, ODR_G) ≥ 3.33 kHz.
+     */
     uint8_t enable_fifo_compression(bool enable);
 
     uint8_t set_uncompressed_data_rate(UNCOMPRESSED_DATA_BATCHING_RATES rate);
@@ -130,13 +137,13 @@ public:
     uint8_t enable_auto_address_increment(bool enable);
     uint8_t software_reset();
     uint8_t set_gyroscope_sleep(bool enable);
-    /// INT2_on_INT1 - Necessary?
+    /// TODO: INT2_on_INT1 - Necessary?
     uint8_t enable_data_ready_mask(bool enable);
     uint8_t enable_i2c_interface(bool enable);
     uint8_t enable_gyro_LPF1(bool enable);
     uint8_t enable_accel_ultra_low_power(bool enable);
     uint8_t enable_rounding(bool accelEnable, bool gyroEnable);
-    /// self test stuff ?? (CTRL5_C)
+    /// TODO: self test stuff ?? (CTRL5_C)
     /// TRIG_EN, LVL1_EN, LVL2_EN ??
     u_int8_t enable_accel_high_performance_mode(bool enable);
     /// Weight of user offsets
@@ -178,10 +185,10 @@ public:
     short get_temperature();
     Vector<double, 3> get_gyro();
     Vector<double, 3> get_accel();
-    uint32_t get_timestamp(); /// Best representation? - resolution is 25us / LSB
+    uint32_t get_timestamp(); // TODO: Best representation of this? - resolution is 25us / LSB
+
     /// A bunch of "TAP" and "WAKE_UP" registers - not being implemented as they are not useful in a rocket context
 
-    // TODO: FIFO stuff
     LSM_FIFO_STATUS get_fifo_status();
     uint8_t fifo_pop(Fifo<Vector<double, 3>>& accFifo, Fifo<Vector<double, 3>>& gyrFifo);
 

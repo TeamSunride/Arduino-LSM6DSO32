@@ -181,7 +181,7 @@ enum FIFO_MODES {
 
 enum INTERRUPTS {
     /// note: these are the bit indexes of for the INT_CTRL registers
-    DEN_DRDY = 7, /// only on INT1 /// Sends DEN_DRDY (DEN stamped on Sensor Data flag) to INT1 pin ???
+    DEN_DRDY = 7, /// only on INT1 /// Sends DEN_DRDY (DEN stamped on Sensor Data flag) to INT1 pin ("Data enable Data Ready")
     CNT_BRD = 6, /// Enables COUNTER_BDR_IA interrupt on INT
     FIFO_IS_FULL = 5, /// Enables FIFO full flag interrupt on INT1 pin
     FIFO_OVR = 4, /// Enables FIFO overrun interrupt on INT pin.

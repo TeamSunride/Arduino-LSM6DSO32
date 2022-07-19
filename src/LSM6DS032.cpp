@@ -92,6 +92,12 @@ uint8_t LSM6DS032::enable_fifo_compression_runtime(bool enable) { // for enablin
 }
 
 uint8_t LSM6DS032::enable_fifo_compression(bool enable) {
+    /*
+     * Accelerometer and gyroscope batch data rate (BDR) can be configured independently, but the compression
+       algorithm is not supported in following configurations:
+       1. Both accelerometer and gyroscope are batched in FIFO and max(ODR_XL, ODR_G) ≥ 1.66 kHz;
+       2. Accelerometer only or gyroscope only is batched in FIFO and max(ODR_XL, ODR_G) ≥ 3.33 kHz.
+     */
     enable_embedded_functions(true);
     byte data = device->read_reg(LSM6DS032_EMBEDDED_REGISTER::EMB_FUNC_EN_B);
     setBit(&data, 3, enable);
@@ -449,13 +455,39 @@ LSM_FIFO_STATUS LSM6DS032::get_fifo_status() {
 
 
 uint8_t LSM6DS032::fifo_pop(Fifo<Vector<double, 3>> &accFifo, Fifo<Vector<double, 3>> &gyrFifo) {
+    /*
+     * When FIFO is enabled and the mode is different from Bypass, reading the FIFO output registers return the oldest
+       FIFO sample set. Whenever these registers are read, their content is moved to the SPI/I²C/MIPI I3C output
+       buffer.
+       FIFO slots are ideally shifted up one level in order to release room for a new sample, and the FIFO output
+       registers load the current oldest value stored in the FIFO buffer.
+       The recommended way to retrieve data from the FIFO is the following:
+            1. Read the FIFO_STATUS1 and FIFO_STATUS2 registers to check how many words are stored in the FIFO.
+               This information is contained in the DIFF_FIFO_[9:0] bits.
+            2. For each word in FIFO, read the FIFO word (tag and output data) and interpret it on the basis of the FIFO
+               tag.
+            3. Go to step 1          - application note 9.8 (page 104)
+     */
+    /*
+     * As shown in Table 87, using FIFO compression introduces a latency of 2 / BDR, since the compression acts on a
+       window of three BDR. - application note  9.10.1
+     */
     byte data[7] = {};
     device->read_regs(LSM6DS032_REGISTER::FIFO_DATA_OUT_TAG, data, 7);
     byte tag = data[0] >> 3;
 
+    // The tag counter is synchronized with the highest BDR. It is for making sense of the time slot in which compressed sensor data occurred. - See application note 9.4 (page 94)
+    byte tagCounter = (data[0] & 0b00000110) >> 1;
+
     switch (tag) {
-        case (FIFO_TAG::GYRO_NC): //
+        /**
+         *  NC, not compressed, if the difference between the actual and previous data is higher than 128 LSB: one
+            sensor sample is stored in one FIFO word; - application note 9.10 (page 107)
+         */
+        case (FIFO_TAG::GYRO_NC): // 0x01 // Uncompressed data - Data(i)
         {
+            // NC, non-compressed, associated to the actual time slot - Application note 9.10.1 (page 108)
+            // NC - time slot data(i)
             double x = (short)((data[2]<<8) | data[1]) * gyro_conversion_factor;
             double y = (short)((data[4]<<8) | data[3]) * gyro_conversion_factor;
             double z = (short)((data[6]<<8) | data[5]) * gyro_conversion_factor;
@@ -464,8 +496,11 @@ uint8_t LSM6DS032::fifo_pop(Fifo<Vector<double, 3>> &accFifo, Fifo<Vector<double
             Serial.printf("%lf, %lf, %lf", x, y, z);
             break;
         }
-        case(FIFO_TAG::ACCEL_NC): //
+
+        case(FIFO_TAG::ACCEL_NC): // 0x02 // Uncompressed data - Data(i)
         {
+            // NC, non-compressed, associated to the actual time slot - Application note 9.10.1 (page 108)
+            // NC - time slot data(i)
             double x = (short)((data[2]<<8) | data[1]) * accel_conversion_factor;
             double y = (short)((data[4]<<8) | data[3]) * accel_conversion_factor;
             double z = (short)((data[6]<<8) | data[5]) * accel_conversion_factor;
@@ -475,11 +510,35 @@ uint8_t LSM6DS032::fifo_pop(Fifo<Vector<double, 3>> &accFifo, Fifo<Vector<double
 
             break;
         }
-        // temperature
-        // timestamp
-        // cfg change
-        case(FIFO_TAG::ACCEL_NC_T_2): // accel + temp + timestamp?
+
+        case (FIFO_TAG::TEMPERATURE): // 0x03 // Uncompressed
         {
+            // First two bytes contain temperature data, other data is zeros - See application note Table 81 (page 95)
+            double temp = (short)((data[2]<<8) | data[1]);
+            // TODO: implement temperature fifo
+            break;
+        }
+
+        case (FIFO_TAG::TIMESTAMP): // 0x04 // Uncompressed - Data(i)
+        {
+            /*
+             * As shown in Table 82, timestamp data contain also some meta-information which can be used to detect a BDR
+                change if the CFG-Change sensor is not batched in FIFO - application note 9.5 (page 95)
+             */
+            // First 4 bytes contain timestamp, rest is metadata about the BDR - See application note Table 82 (page 95)
+            uint32_t timestamp = (data[4]<<24) | (data[3]<<16) | (data[2]<<8) | data[1];
+            byte BDR_SHUB = data[5] & 0b00001111; // Sensor hub BDR
+            byte BDR_XL = data[6] & 0b00001111; // Accelerometer BDR
+            byte BDR_GY = (data[6] & 0b11110000) >> 4; // Gyroscope BDR
+        }
+
+        // cfg change - 0x05
+        // TODO: CGF change - Rather complicated tbh, don't think its necessary for most projects.
+
+
+        case(FIFO_TAG::ACCEL_NC_T_2): // 0x06
+        {
+            // NC_T_2, non-compressed, associated to two times the previous time slot; data(i-2) - application note 9.10.1 (page 108)
             double x = (short)((data[2]<<8) | data[1]) * accel_conversion_factor;
             double y = (short)((data[4]<<8) | data[3]) * accel_conversion_factor;
             double z = (short)((data[6]<<8) | data[5]) * accel_conversion_factor;
@@ -488,8 +547,10 @@ uint8_t LSM6DS032::fifo_pop(Fifo<Vector<double, 3>> &accFifo, Fifo<Vector<double
 
             break;
         }
-        case(FIFO_TAG::ACCEL_NC_T_1): // accel + temp?
+
+        case(FIFO_TAG::ACCEL_NC_T_1): //0x07 // accel + temp?
         {
+            // NC_T_1, non-compressed, associated to the previous time slot; diff(i-1) - application note 9.10.1 (page 108)
             double x = (short)((data[2]<<8) | data[1]) * accel_conversion_factor;
             double y = (short)((data[4]<<8) | data[3]) * accel_conversion_factor;
             double z = (short)((data[6]<<8) | data[5]) * accel_conversion_factor;
@@ -498,8 +559,14 @@ uint8_t LSM6DS032::fifo_pop(Fifo<Vector<double, 3>> &accFifo, Fifo<Vector<double
 
             break;
         }
-        case(FIFO_TAG::ACCEL_2_X_C):
+
+        /**
+         * 2xC, low compression, if the difference between the actual and previous data between 16 and 128 LSB: two
+           sensor samples are stored in one FIFO word; application note 9.10 (page 107)
+         */
+        case(FIFO_TAG::ACCEL_2_X_C): // 0x08 // low compression
         {
+            // 2xC, low compression; diff(i - 2), diff(i - 1) - application note (page 108)
 //            double x = (short)((data[2]<<8) | data[1]) * accel_conversion_factor;
 //            double y = (short)((data[4]<<8) | data[3]) * accel_conversion_factor;
 //            double z = (short)((data[6]<<8) | data[5]) * accel_conversion_factor;
@@ -515,8 +582,14 @@ uint8_t LSM6DS032::fifo_pop(Fifo<Vector<double, 3>> &accFifo, Fifo<Vector<double
 
             break;
         }
-        case(FIFO_TAG::ACCEL_3_X_C): // 0x9
+
+        /*
+         * 3xC, high compression, if the difference between the actual and previous data is less than 16 LSB: three
+           sensor samples are stored in one FIFO word. application note 9.10 (page 107)
+         */
+        case(FIFO_TAG::ACCEL_3_X_C): // 0x09 // high compression
         {
+            // 2xC, high compression; diff(i - 2), diff(i - 1), diff(i) - application note (page 108)
             double x = (short)((data[2]<<8) | data[1]) * accel_conversion_factor;
             double y = (short)((data[4]<<8) | data[3]) * accel_conversion_factor;
             double z = (short)((data[6]<<8) | data[5]) * accel_conversion_factor;
@@ -526,8 +599,10 @@ uint8_t LSM6DS032::fifo_pop(Fifo<Vector<double, 3>> &accFifo, Fifo<Vector<double
 
             break;
         }
-        case (FIFO_TAG::GYRO_NC_T_2): // 0xA
+
+        case (FIFO_TAG::GYRO_NC_T_2): // 0x0A //
         {
+            // NC_T_2, non-compressed, associated to two times the previous time slot; (i-2) - application note 9.10.1 (page 108)
             double x = (short)((data[2]<<8) | data[1]) * gyro_conversion_factor;
             double y = (short)((data[4]<<8) | data[3]) * gyro_conversion_factor;
             double z = (short)((data[6]<<8) | data[5]) * gyro_conversion_factor;
@@ -535,8 +610,10 @@ uint8_t LSM6DS032::fifo_pop(Fifo<Vector<double, 3>> &accFifo, Fifo<Vector<double
             //Serial.printf("%lf, %lf, %lf", x, y, z);
             break;
         }
-        case (FIFO_TAG::GYRO_NC_T_1): // 0xB
+
+        case (FIFO_TAG::GYRO_NC_T_1): // 0x0B
         {
+            // NC_T_1, non-compressed, associated to the previous time slot; (i-1) - application note 9.10.1 (page 108)
             double x = (short)((data[2]<<8) | data[1]) * gyro_conversion_factor;
             double y = (short)((data[4]<<8) | data[3]) * gyro_conversion_factor;
             double z = (short)((data[6]<<8) | data[5]) * gyro_conversion_factor;
@@ -544,11 +621,10 @@ uint8_t LSM6DS032::fifo_pop(Fifo<Vector<double, 3>> &accFifo, Fifo<Vector<double
             //Serial.printf("%lf, %lf, %lf", x, y, z);
             break;
         }
-        case (FIFO_TAG::GYRO_2_X_C): // 0XC
+
+        case (FIFO_TAG::GYRO_2_X_C): // 0X0C // low compression
         {
-//            double x = (short)((data[2]<<8) | data[1]) * gyro_conversion_factor;
-//            double y = (short)((data[4]<<8) | data[3]) * gyro_conversion_factor;
-//            double z = (short)((data[6]<<8) | data[5]) * gyro_conversion_factor;
+            // 2xC, low compression; (i-2), (i-1) - application note (page 108)
             double x1 = data[1] * gyro_conversion_factor;
             double x2 = data[2] * gyro_conversion_factor;
             double y1 = data[3] * gyro_conversion_factor;
@@ -562,7 +638,8 @@ uint8_t LSM6DS032::fifo_pop(Fifo<Vector<double, 3>> &accFifo, Fifo<Vector<double
             //Serial.printf("%lf, %lf, %lf", x2, y2, z2);
             break;
         }
-        case (FIFO_TAG::GYRO_3_X_C):
+
+        case (FIFO_TAG::GYRO_3_X_C): // 0x0D // high compression
         {
             double x = (short)((data[2]<<8) | data[1]) * gyro_conversion_factor;
             double y = (short)((data[4]<<8) | data[3]) * gyro_conversion_factor;
@@ -571,11 +648,15 @@ uint8_t LSM6DS032::fifo_pop(Fifo<Vector<double, 3>> &accFifo, Fifo<Vector<double
             //Serial.printf("%lf, %lf, %lf", x, y, z);
             break;
         }
+        // 0x0E Sensor Hub Slave 0
+        // 0x0F Sensor Hub Slave 1
+        // 0x10 Sensor Hub Slave 2
+        // 0x11 Sensor Hub Slave 3
+        // 0x12 Step Counter
+        // 0x19 Sensor Hub Nack
         default:
+            // no nothing
             break;
-
-
-
     }
     return 0;
 
