@@ -452,32 +452,33 @@ uint8_t LSM6DS032::fifo_pop(Fifo<Vector<double, 3>> &accFifo, Fifo<Vector<double
     byte data[7] = {};
     device->read_regs(LSM6DS032_REGISTER::FIFO_DATA_OUT_TAG, data, 7);
     byte tag = data[0] >> 3;
-    Serial.printf("\nTag: 0X%X\n", tag);
 
     switch (tag) {
-        case (FIFO_TAG::GYRO_NC):
+        case (FIFO_TAG::GYRO_NC): //
         {
             double x = (short)((data[2]<<8) | data[1]) * gyro_conversion_factor;
             double y = (short)((data[4]<<8) | data[3]) * gyro_conversion_factor;
             double z = (short)((data[6]<<8) | data[5]) * gyro_conversion_factor;
             //gyrFifo.push({x,y,z});
+            Serial.printf("\nTag: 0X%X\n", tag);
             Serial.printf("%lf, %lf, %lf", x, y, z);
             break;
         }
-        case(FIFO_TAG::ACCEL_NC):
+        case(FIFO_TAG::ACCEL_NC): //
         {
             double x = (short)((data[2]<<8) | data[1]) * accel_conversion_factor;
             double y = (short)((data[4]<<8) | data[3]) * accel_conversion_factor;
             double z = (short)((data[6]<<8) | data[5]) * accel_conversion_factor;
             //accFifo.push({x,y,z});
-            //Serial.printf("%lf, %lf, %lf", x, y, z);
+            Serial.printf("\nTag: 0X%X\n", tag);
+            Serial.printf("%lf, %lf, %lf", x, y, z);
 
             break;
         }
         // temperature
         // timestamp
         // cfg change
-        case(FIFO_TAG::ACCEL_NC_T_2):
+        case(FIFO_TAG::ACCEL_NC_T_2): // accel + temp + timestamp?
         {
             double x = (short)((data[2]<<8) | data[1]) * accel_conversion_factor;
             double y = (short)((data[4]<<8) | data[3]) * accel_conversion_factor;
@@ -487,7 +488,7 @@ uint8_t LSM6DS032::fifo_pop(Fifo<Vector<double, 3>> &accFifo, Fifo<Vector<double
 
             break;
         }
-        case(FIFO_TAG::ACCEL_NC_T_1):
+        case(FIFO_TAG::ACCEL_NC_T_1): // accel + temp?
         {
             double x = (short)((data[2]<<8) | data[1]) * accel_conversion_factor;
             double y = (short)((data[4]<<8) | data[3]) * accel_conversion_factor;
@@ -499,16 +500,9 @@ uint8_t LSM6DS032::fifo_pop(Fifo<Vector<double, 3>> &accFifo, Fifo<Vector<double
         }
         case(FIFO_TAG::ACCEL_2_X_C):
         {
-            double x = (short)((data[2]<<8) | data[1]) * accel_conversion_factor;
-            double y = (short)((data[4]<<8) | data[3]) * accel_conversion_factor;
-            double z = (short)((data[6]<<8) | data[5]) * accel_conversion_factor;
-            //accFifo.push({x,y,z});
-            //Serial.printf("%lf, %lf, %lf", x, y, z);
-
-            break;
-        }
-        case(FIFO_TAG::ACCEL_3_X_C):
-        {
+//            double x = (short)((data[2]<<8) | data[1]) * accel_conversion_factor;
+//            double y = (short)((data[4]<<8) | data[3]) * accel_conversion_factor;
+//            double z = (short)((data[6]<<8) | data[5]) * accel_conversion_factor;
             double x1 = data[1] * accel_conversion_factor;
             double x2 = data[2] * accel_conversion_factor;
             double y1 = data[3] * accel_conversion_factor;
@@ -521,7 +515,18 @@ uint8_t LSM6DS032::fifo_pop(Fifo<Vector<double, 3>> &accFifo, Fifo<Vector<double
 
             break;
         }
-        case (FIFO_TAG::GYRO_NC_T_2):
+        case(FIFO_TAG::ACCEL_3_X_C): // 0x9
+        {
+            double x = (short)((data[2]<<8) | data[1]) * accel_conversion_factor;
+            double y = (short)((data[4]<<8) | data[3]) * accel_conversion_factor;
+            double z = (short)((data[6]<<8) | data[5]) * accel_conversion_factor;
+            //accFifo.push({x,y,z});
+            //Serial.printf("%lf, %lf, %lf\n", x, y, z);
+
+
+            break;
+        }
+        case (FIFO_TAG::GYRO_NC_T_2): // 0xA
         {
             double x = (short)((data[2]<<8) | data[1]) * gyro_conversion_factor;
             double y = (short)((data[4]<<8) | data[3]) * gyro_conversion_factor;
@@ -530,7 +535,7 @@ uint8_t LSM6DS032::fifo_pop(Fifo<Vector<double, 3>> &accFifo, Fifo<Vector<double
             //Serial.printf("%lf, %lf, %lf", x, y, z);
             break;
         }
-        case (FIFO_TAG::GYRO_NC_T_1):
+        case (FIFO_TAG::GYRO_NC_T_1): // 0xB
         {
             double x = (short)((data[2]<<8) | data[1]) * gyro_conversion_factor;
             double y = (short)((data[4]<<8) | data[3]) * gyro_conversion_factor;
@@ -539,13 +544,22 @@ uint8_t LSM6DS032::fifo_pop(Fifo<Vector<double, 3>> &accFifo, Fifo<Vector<double
             //Serial.printf("%lf, %lf, %lf", x, y, z);
             break;
         }
-        case (FIFO_TAG::GYRO_2_X_C):
+        case (FIFO_TAG::GYRO_2_X_C): // 0XC
         {
-            double x = (short)((data[2]<<8) | data[1]) * gyro_conversion_factor;
-            double y = (short)((data[4]<<8) | data[3]) * gyro_conversion_factor;
-            double z = (short)((data[6]<<8) | data[5]) * gyro_conversion_factor;
+//            double x = (short)((data[2]<<8) | data[1]) * gyro_conversion_factor;
+//            double y = (short)((data[4]<<8) | data[3]) * gyro_conversion_factor;
+//            double z = (short)((data[6]<<8) | data[5]) * gyro_conversion_factor;
+            double x1 = data[1] * gyro_conversion_factor;
+            double x2 = data[2] * gyro_conversion_factor;
+            double y1 = data[3] * gyro_conversion_factor;
+            double y2 = data[4] * gyro_conversion_factor;
+            double z1 = data[5] * gyro_conversion_factor;
+            double z2 = data[6] * gyro_conversion_factor;
+
+
             //gyrFifo.push({x,y,z});
-            //Serial.printf("%lf, %lf, %lf", x, y, z);
+            //Serial.printf("%lf, %lf, %lf", x1, y1, z1);
+            //Serial.printf("%lf, %lf, %lf", x2, y2, z2);
             break;
         }
         case (FIFO_TAG::GYRO_3_X_C):
@@ -576,7 +590,12 @@ uint8_t LSM6DS032::default_configuration() {
     /// FIFO compression
     set_uncompressed_data_rate(UNCOMPRESSED_DATA_BATCHING_RATES::UNCOPTR_0);
 
-
+    /*
+     * Accelerometer and gyroscope batch data rate (BDR) can be configured independently, but the compression
+       algorithm is not supported in following configurations:
+       1. Both accelerometer and gyroscope are batched in FIFO and max(ODR_XL, ODR_G) ≥ 1.66 kHz;
+       2. Accelerometer only or gyroscope only is batched in FIFO and max(ODR_XL, ODR_G) ≥ 3.33 kHz.
+     */
     enable_fifo_compression(true);
     enable_fifo_compression_runtime(true);
     /// BATCHING DATA RATES

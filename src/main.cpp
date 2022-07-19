@@ -4,7 +4,7 @@
 #include "LSM6DS032_registers.h"
 #include "LSM6DS032.h"
 #include <Wire.h>
-#include "Fifo.h"
+#include "Fifo.h" // dynamically allocated Version.
 
 
 #define DEBUG Serial.printf("%s %d\n", __FILE__, __LINE__)
@@ -21,8 +21,8 @@ SPISettings settings = SPISettings(4000000, MSBFIRST, SPI_MODE0);
 LSM6DS032 LSM(CS_pin, SPI, settings); // spi protocol constructor
 //LSM6DS032 LSM(&Wire, 1000000); // i2c protocol constructor
 
-Fifo<Vector<double, 3>> accFifo(256);
-Fifo<Vector<double, 3>> gyrFifo(256);
+Fifo<Vector<double, 3>> accFifo(1024);
+Fifo<Vector<double, 3>> gyrFifo(1024);
 LSM_FIFO_STATUS fifo_status;
 
 void setup() {

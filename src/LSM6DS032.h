@@ -15,6 +15,8 @@
 #define DEBUG Serial.printf("%s %d\n", __FILE__, __LINE__)
 /*
  * Datasheet: https://www.st.com/resource/en/datasheet/lsm6dso32.pdf
+ *
+ * Application note: https://www.st.com/resource/en/application_note/dm00517282-lsm6dso-alwayson-3d-accelerometer-and-3d-gyroscope-stmicroelectronics.pdf
 */
 
 
