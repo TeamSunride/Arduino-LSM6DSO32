@@ -35,7 +35,7 @@ void test_who_am_i() {
 }
 
 void test_get_accel() {
-    Vector<double> acc = {0,0,0};
+    Vector<double, 3> acc = {0,0,0};
     for(int i=0; i<100; i++) {
         acc = LSMTest.get_accel();
         delay(1); // 1ms

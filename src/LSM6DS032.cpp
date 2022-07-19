@@ -8,12 +8,14 @@ LSM6DS032::LSM6DS032(TwoWire *pipe, uint32_t freq) { // constructor for I2C prot
     device = new I2CProtocol(LSM6DS032_DEFAULT_I2C_ADDRESS, pipe, freq);
     accel_conversion_factor = 0.0098*0.978; /// Defaults to +- 32g sensitivity
     gyro_conversion_factor = 0.07; /// defaults to +- 2000dps
-    enable_sdo_pullup(true); // pullup for i2c SDA/SDO line - probably best to use external ones
+    enable_sdo_pullup(true); // pullup for i2c SDA/SDO line - probably best to use external ones as well though
 }
 
 LSM6DS032::LSM6DS032(byte chipSelect, SPIClass& spi, SPISettings settings) { // constructor for SPI protocol
     // TODO: is there a way to assert/ensure that the SPI settings are that of the LSM6DS032? - namely, MSB first, SPI mode 2.
     device = new SPIProtocol(chipSelect, spi, settings, READ_BYTE, WRITE_BYTE);
+    accel_conversion_factor = 0.0098*0.978; /// Defaults to +- 32g sensitivity
+    gyro_conversion_factor = 0.07; /// defaults to +- 2000dps
 }
 
 // Cheers GitHub copilot ;)
@@ -403,8 +405,8 @@ short LSM6DS032::get_temperature() {
 }
 
 
-Vector<double> LSM6DS032::get_gyro() {
-    Vector<double> returnVect = {0, 0, 0};
+Vector<double, 3> LSM6DS032::get_gyro() {
+    Vector<double, 3> returnVect = {0, 0, 0};
     byte a[6] = {0};
     device->read_regs(LSM6DS032_REGISTER::OUTX_L_G, a, 6);
     returnVect[0] = ((short)((a[1]<<8) | a[0])) * gyro_conversion_factor;
@@ -414,8 +416,8 @@ Vector<double> LSM6DS032::get_gyro() {
 }
 
 
-Vector<double> LSM6DS032::get_accel() {
-    Vector<double> returnVect = {0, 0, 0};
+Vector<double, 3> LSM6DS032::get_accel() {
+    Vector<double, 3> returnVect = {0, 0, 0};
     byte a[6] = {0};
     device->read_regs(LSM6DS032_REGISTER::OUTX_L_A, a, 6);
     returnVect[0] = ((short)((a[1]<<8) | a[0])) * accel_conversion_factor;
@@ -431,11 +433,26 @@ uint32_t LSM6DS032::get_timestamp() {
 }
 
 
-uint8_t LSM6DS032::fifo_pop(Fifo<Vector<double>>& accFifo, Fifo<Vector<double>>& gyrFifo) {
+LSM_FIFO_STATUS LSM6DS032::get_fifo_status() {
+    struct LSM_FIFO_STATUS status = {false,false,false,false,false,0};
+    byte a[2] = {};
+    device->read_regs(LSM6DS032_REGISTER::FIFO_STATUS1, a, 2);
+    status.watermark_flag = getBit(a[1], 7);
+    status.overrun_flag = getBit(a[1], 6);
+    status.smart_fifo_full_flag = getBit(a[1], 5);
+    status.counter_bdr_flag = getBit(a[1], 4);
+    status.fifo_ovr_latched = getBit(a[1], 3);
+    status.num_fifo_unread = ((a[1] & 0b00000011) << 8) | a[0];
+
+    return status;
+}
+
+
+uint8_t LSM6DS032::fifo_pop(Fifo<Vector<double, 3>> &accFifo, Fifo<Vector<double, 3>> &gyrFifo) {
     byte data[7] = {};
     device->read_regs(LSM6DS032_REGISTER::FIFO_DATA_OUT_TAG, data, 7);
     byte tag = data[0] >> 3;
-    Serial.printf("\n%X\n", tag);
+    Serial.printf("\nTag: 0X%X\n", tag);
 
     switch (tag) {
         case (FIFO_TAG::GYRO_NC):
@@ -453,7 +470,7 @@ uint8_t LSM6DS032::fifo_pop(Fifo<Vector<double>>& accFifo, Fifo<Vector<double>>&
             double y = (short)((data[4]<<8) | data[3]) * accel_conversion_factor;
             double z = (short)((data[6]<<8) | data[5]) * accel_conversion_factor;
             //accFifo.push({x,y,z});
-            Serial.printf("%lf, %lf, %lf", x, y, z);
+            //Serial.printf("%lf, %lf, %lf", x, y, z);
 
             break;
         }
@@ -466,7 +483,7 @@ uint8_t LSM6DS032::fifo_pop(Fifo<Vector<double>>& accFifo, Fifo<Vector<double>>&
             double y = (short)((data[4]<<8) | data[3]) * accel_conversion_factor;
             double z = (short)((data[6]<<8) | data[5]) * accel_conversion_factor;
             //accFifo.push({x,y,z});
-            Serial.printf("%lf, %lf, %lf", x, y, z);
+            //Serial.printf("%lf, %lf, %lf", x, y, z);
 
             break;
         }
@@ -476,7 +493,7 @@ uint8_t LSM6DS032::fifo_pop(Fifo<Vector<double>>& accFifo, Fifo<Vector<double>>&
             double y = (short)((data[4]<<8) | data[3]) * accel_conversion_factor;
             double z = (short)((data[6]<<8) | data[5]) * accel_conversion_factor;
             //accFifo.push({x,y,z});
-            Serial.printf("%lf, %lf, %lf", x, y, z);
+            //Serial.printf("%lf, %lf, %lf", x, y, z);
 
             break;
         }
@@ -486,17 +503,21 @@ uint8_t LSM6DS032::fifo_pop(Fifo<Vector<double>>& accFifo, Fifo<Vector<double>>&
             double y = (short)((data[4]<<8) | data[3]) * accel_conversion_factor;
             double z = (short)((data[6]<<8) | data[5]) * accel_conversion_factor;
             //accFifo.push({x,y,z});
-            Serial.printf("%lf, %lf, %lf", x, y, z);
+            //Serial.printf("%lf, %lf, %lf", x, y, z);
 
             break;
         }
         case(FIFO_TAG::ACCEL_3_X_C):
         {
-            double x = (short)((data[2]<<8) | data[1]) * accel_conversion_factor;
-            double y = (short)((data[4]<<8) | data[3]) * accel_conversion_factor;
-            double z = (short)((data[6]<<8) | data[5]) * accel_conversion_factor;
+            double x1 = data[1] * accel_conversion_factor;
+            double x2 = data[2] * accel_conversion_factor;
+            double y1 = data[3] * accel_conversion_factor;
+            double y2 = data[4] * accel_conversion_factor;
+            double z1 = data[5] * accel_conversion_factor;
+            double z2 = data[6] * accel_conversion_factor;
             //accFifo.push({x,y,z});
-            Serial.printf("%lf, %lf, %lf", x, y, z);
+            //Serial.printf("%lf, %lf, %lf\n", x1, y1, z1);
+            //Serial.printf("%lf, %lf, %lf", x2, y2, z2);
 
             break;
         }
@@ -506,7 +527,7 @@ uint8_t LSM6DS032::fifo_pop(Fifo<Vector<double>>& accFifo, Fifo<Vector<double>>&
             double y = (short)((data[4]<<8) | data[3]) * gyro_conversion_factor;
             double z = (short)((data[6]<<8) | data[5]) * gyro_conversion_factor;
             //gyrFifo.push({x,y,z});
-            Serial.printf("%lf, %lf, %lf", x, y, z);
+            //Serial.printf("%lf, %lf, %lf", x, y, z);
             break;
         }
         case (FIFO_TAG::GYRO_NC_T_1):
@@ -515,7 +536,7 @@ uint8_t LSM6DS032::fifo_pop(Fifo<Vector<double>>& accFifo, Fifo<Vector<double>>&
             double y = (short)((data[4]<<8) | data[3]) * gyro_conversion_factor;
             double z = (short)((data[6]<<8) | data[5]) * gyro_conversion_factor;
             //gyrFifo.push({x,y,z});
-            Serial.printf("%lf, %lf, %lf", x, y, z);
+            //Serial.printf("%lf, %lf, %lf", x, y, z);
             break;
         }
         case (FIFO_TAG::GYRO_2_X_C):
@@ -524,7 +545,7 @@ uint8_t LSM6DS032::fifo_pop(Fifo<Vector<double>>& accFifo, Fifo<Vector<double>>&
             double y = (short)((data[4]<<8) | data[3]) * gyro_conversion_factor;
             double z = (short)((data[6]<<8) | data[5]) * gyro_conversion_factor;
             //gyrFifo.push({x,y,z});
-            Serial.printf("%lf, %lf, %lf", x, y, z);
+            //Serial.printf("%lf, %lf, %lf", x, y, z);
             break;
         }
         case (FIFO_TAG::GYRO_3_X_C):
@@ -533,9 +554,11 @@ uint8_t LSM6DS032::fifo_pop(Fifo<Vector<double>>& accFifo, Fifo<Vector<double>>&
             double y = (short)((data[4]<<8) | data[3]) * gyro_conversion_factor;
             double z = (short)((data[6]<<8) | data[5]) * gyro_conversion_factor;
             //gyrFifo.push({x,y,z});
-            Serial.printf("%lf, %lf, %lf", x, y, z);
+            //Serial.printf("%lf, %lf, %lf", x, y, z);
             break;
         }
+        default:
+            break;
 
 
 
@@ -548,7 +571,7 @@ uint8_t LSM6DS032::fifo_pop(Fifo<Vector<double>>& accFifo, Fifo<Vector<double>>&
 
 uint8_t LSM6DS032::default_configuration() {
     software_reset();
-    set_fifo_watermark(256);
+    set_fifo_watermark(511);
     stop_on_WTM(false);
     /// FIFO compression
     set_uncompressed_data_rate(UNCOMPRESSED_DATA_BATCHING_RATES::UNCOPTR_0);
@@ -558,11 +581,11 @@ uint8_t LSM6DS032::default_configuration() {
     enable_fifo_compression_runtime(true);
     /// BATCHING DATA RATES
 
-    set_batching_data_rates(BATCHING_DATA_RATES::BDR_6667Hz, BATCHING_DATA_RATES::BDR_6667Hz); // accel, gyro
+    set_batching_data_rates(BATCHING_DATA_RATES::BDR_104Hz, BATCHING_DATA_RATES::BDR_104Hz); // accel, gyro
     set_timestamp_batching_decimation(TIMESTAMP_BATCHING_DECIMATION::DECIMATION_32);
 
     /// FIFO MODE
-    set_fifo_mode(FIFO_MODES::FIFO_MODE);
+    set_fifo_mode(FIFO_MODES::CONTINUOUS_MODE);
 
     set_dataready_pulsed(true);
     set_gyro_as_batch_count_trigger(false); // using accel instead

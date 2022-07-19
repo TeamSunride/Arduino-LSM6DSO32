@@ -11,13 +11,38 @@
 #include "Fifo.h"
 
 
+
+#define DEBUG Serial.printf("%s %d\n", __FILE__, __LINE__)
 /*
  * Datasheet: https://www.st.com/resource/en/datasheet/lsm6dso32.pdf
 */
 
 
+struct LSM_FIFO_STATUS {
+    ///  0: FIFO filling is lower than WTM; 1: FIFO filling is equal to or greater than WTM)
+    bool watermark_flag;
+
+    /// (0: FIFO is not completely filled; 1: FIFO is completely filled)
+    bool overrun_flag;
+
+    /// (0: FIFO is not full; 1: FIFO will be full at the next ODR)
+    bool smart_fifo_full_flag;
+
+    /// Counter BDR reaches the CNT_BDR_TH_[10:0] threshold set in
+    //  COUNTER_BDR_REG1 (0Bh) and COUNTER_BDR_REG2 (0Ch). Default value: 0
+    //  This bit is reset when these registers are read.
+    bool counter_bdr_flag;
+
+    /// Latched FIFO overrun status. Default value: 0
+    //  This bit is reset when this register is read.
+    bool fifo_ovr_latched;
+
+    /// Number of unread sensor data (TAG + 6 bytes) stored in FIFO. Default value: 00
+    uint16_t num_fifo_unread;
+};
+
 // The LSM6DSO32 can be used as an I2C or SPI device, use the appropriate constructor for the desired protocol.
-class LSM6DS032 { // This could maybe be a child of the IMU class??
+class LSM6DS032{ // This could maybe be a child of the IMU class??
 protected:
     protocol* device;
     double accel_conversion_factor;
@@ -149,13 +174,14 @@ public:
     /// D6D_SRC
     /// STATUS_REG
     short get_temperature();
-    Vector<double> get_gyro();
-    Vector<double> get_accel();
+    Vector<double, 3> get_gyro();
+    Vector<double, 3> get_accel();
     uint32_t get_timestamp(); /// Best representation? - resolution is 25us / LSB
     /// A bunch of "TAP" and "WAKE_UP" registers - not being implemented as they are not useful in a rocket context
 
     // TODO: FIFO stuff
-    uint8_t fifo_pop(Fifo<Vector<double>>& accFifo, Fifo<Vector<double>>& gyrFifo);
+    LSM_FIFO_STATUS get_fifo_status();
+    uint8_t fifo_pop(Fifo<Vector<double, 3>>& accFifo, Fifo<Vector<double, 3>>& gyrFifo);
 
 
 

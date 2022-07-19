@@ -6,6 +6,9 @@
 #include <Wire.h>
 #include "Fifo.h"
 
+
+#define DEBUG Serial.printf("%s %d\n", __FILE__, __LINE__)
+
 /*
  * Datasheet: https://www.st.com/resource/en/datasheet/lsm6dso32.pdf
  *
@@ -15,26 +18,38 @@
 /* Usage */
 #define CS_pin 10
 SPISettings settings = SPISettings(4000000, MSBFIRST, SPI_MODE0);
-LSM6DS032 LSM(CS_pin, SPI, settings);
-//LSM6DS032 LSM(&Wire, 1000000);
-Fifo<Vector<double>> accFifo(128);
-Fifo<Vector<double>> gyrFifo(128);
+LSM6DS032 LSM(CS_pin, SPI, settings); // spi protocol constructor
+//LSM6DS032 LSM(&Wire, 1000000); // i2c protocol constructor
 
+Fifo<Vector<double, 3>> accFifo(256);
+Fifo<Vector<double, 3>> gyrFifo(256);
+LSM_FIFO_STATUS fifo_status;
 
 void setup() {
     delay(1000);
-    Serial.begin(115200);
-    Vector<double> a(3);
+
+    Vector<double, 3> a;
+
     LSM.begin();
     LSM.default_configuration();
+
+    fifo_status = LSM.get_fifo_status();
+    delay(1000);
+
 }
 
 
 void loop() {
+    unsigned long start = micros();
+    fifo_status = LSM.get_fifo_status();
+    int num_unread = fifo_status.num_fifo_unread;
+    Serial.printf("\nNum Unread: %d\n", num_unread);
+    for (int i=0;i<num_unread;i++) {
+        LSM.fifo_pop(accFifo, gyrFifo);
+    }
 
-    LSM.fifo_pop(accFifo, gyrFifo);
-//    Vector<double> acc = accFifo.pop();
-//    Serial.printf("%lf, %lf, %lf\n", acc[0], acc[1], acc[2]);
 
-    delayMicroseconds(150);
+
+    //Serial.printf("\nTime: %d\n", micros() - start);
+    delayMicroseconds(10000-(micros()-start));
 }
