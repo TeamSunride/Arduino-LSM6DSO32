@@ -23,8 +23,8 @@ SPISettings settings = SPISettings(4000000, MSBFIRST, SPI_MODE0);
 LSM6DS032 LSM(CS_pin, SPI, settings); // spi protocol constructor
 //LSM6DS032 LSM(&Wire, 1000000); // i2c protocol constructor
 
-Fifo<Vector<double, 3>> accFifo(1024);
-Fifo<Vector<double, 3>> gyrFifo(1024);
+Fifo<Vector<double, 4>> accFifo(1024);
+Fifo<Vector<double, 4>> gyrFifo(1024);
 LSM_FIFO_STATUS fifo_status;
 
 void setup() {
@@ -45,7 +45,7 @@ void loop() {
     unsigned long start = micros();
     fifo_status = LSM.get_fifo_status();
     int num_unread = fifo_status.num_fifo_unread;
-    Serial.printf("\nNum Unread: %d\n", num_unread);
+    //Serial.printf("\nNum Unread: %d\n", num_unread);
     for (int i=0;i<num_unread;i++) {
         LSM.fifo_pop(accFifo, gyrFifo);
     }

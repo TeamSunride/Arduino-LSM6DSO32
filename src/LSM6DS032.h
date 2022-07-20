@@ -49,6 +49,12 @@ protected:
     protocol* device;
     double accel_conversion_factor;
     double gyro_conversion_factor;
+
+    /* 3. Hybrid, based on combined usage of the TAG_CNT field and decimated timestamp sensor */
+    uint64_t timestamp_lsb; // stores the timestamp based on updates from the FIFO and the fifo counter
+    byte prev_tag_cnt; // stores the previous value of the tag counter from the fifo
+    BATCHING_DATA_RATES XL_BDR; // needed for timestamp-timestamp counter hybrid.
+    BATCHING_DATA_RATES GY_BDR;
 public:
     LSM6DS032(TwoWire *pipe, uint32_t freq); // constructor overload for I2C protocol
     LSM6DS032(byte chipSelect, SPIClass& spi, SPISettings settings); // constructor overload for SPI protocol
@@ -143,7 +149,7 @@ public:
     uint8_t enable_gyro_LPF1(bool enable);
     uint8_t enable_accel_ultra_low_power(bool enable);
     uint8_t enable_rounding(bool accelEnable, bool gyroEnable);
-    /// TODO: self test stuff ?? (CTRL5_C)
+    /// TODO: self test stuff  (CTRL5_C) -- see appplication note
     /// TRIG_EN, LVL1_EN, LVL2_EN ??
     u_int8_t enable_accel_high_performance_mode(bool enable);
     /// Weight of user offsets
@@ -190,7 +196,8 @@ public:
     /// A bunch of "TAP" and "WAKE_UP" registers - not being implemented as they are not useful in a rocket context
 
     LSM_FIFO_STATUS get_fifo_status();
-    uint8_t fifo_pop(Fifo<Vector<double, 3>>& accFifo, Fifo<Vector<double, 3>>& gyrFifo);
+    int get_timestamp_increment();
+    uint8_t fifo_pop(Fifo<Vector<double, 4>>& accFifo, Fifo<Vector<double, 4>>& gyrFifo);
 
 
 
