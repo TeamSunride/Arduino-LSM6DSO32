@@ -502,7 +502,7 @@ int LSM6DS032::get_timestamp_increment(){
     return 0;
 }
 
-uint8_t LSM6DS032::fifo_pop(Fifo<Vector<double, 4>> &accFifo, Fifo<Vector<double, 4>> &gyrFifo) { // three data fields then one timestamp.
+uint8_t LSM6DS032::fifo_pop(Fifo<Vector<double, 4>> &acc_fifo, Fifo<Vector<double, 4>> &gyr_fifo) { // three data fields then one timestamp.
     /*
      * When FIFO is enabled and the mode is different from Bypass, reading the FIFO output registers return the oldest
        FIFO sample set. Whenever these registers are read, their content is moved to the SPI/I²C/MIPI I3C output
@@ -526,8 +526,8 @@ uint8_t LSM6DS032::fifo_pop(Fifo<Vector<double, 4>> &accFifo, Fifo<Vector<double
 
     // The tag counter is synchronized with the highest BDR. It is for making sense of the time slot in which compressed sensor data occurred. - See application note 9.4 (page 94)
     byte tag_cnt = (data[0] & 0b00000110) >> 1;
-//    Serial.printf("Tag: 0X%X\n", tag);
-//    Serial.printf("Tag Counter: %d\n", tagCounter);
+    if (Serial)Serial.printf("Tag: 0X%X\n", tag);
+    //if (Serial)Serial.printf("Tag Counter: %d\n", tag_cnt);
     int i=0;
     while ((((prev_tag_cnt+i)%4) != tag_cnt)) { i++; }
 
@@ -549,7 +549,7 @@ uint8_t LSM6DS032::fifo_pop(Fifo<Vector<double, 4>> &accFifo, Fifo<Vector<double
             double y = (short)((data[4]<<8) | data[3]) * gyro_conversion_factor;
             double z = (short)((data[6]<<8) | data[5]) * gyro_conversion_factor;
             auto t = static_cast<double>(timestamp_lsb);
-            gyrFifo.push(Vector<double, 4> {x,y,z,t});
+            gyr_fifo.push(Vector<double, 4> {x,y,z,t});
             break;
         }
 
@@ -561,7 +561,7 @@ uint8_t LSM6DS032::fifo_pop(Fifo<Vector<double, 4>> &accFifo, Fifo<Vector<double
             double y = (short)((data[4]<<8) | data[3]) * accel_conversion_factor;
             double z = (short)((data[6]<<8) | data[5]) * accel_conversion_factor;
             auto t = static_cast<double>(timestamp_lsb);
-            accFifo.push(Vector<double, 4> {x,y,z,t});
+            acc_fifo.push(Vector<double, 4> {x,y,z,t});
             break;
         }
 
@@ -576,8 +576,7 @@ uint8_t LSM6DS032::fifo_pop(Fifo<Vector<double, 4>> &accFifo, Fifo<Vector<double
 
         case (FIFO_TAG::TIMESTAMP): // 0x04 // Uncompressed - Data(i) - updates the timestamp field.
         {
-            /*
-             * As shown in Table 82, timestamp data contain also some meta-information which can be used to detect a BDR
+             /* As shown in Table 82, timestamp data contain also some meta-information which can be used to detect a BDR
                 change if the CFG-Change sensor is not batched in FIFO - application note 9.5 (page 95)
              */
             // First 4 bytes contain timestamp, rest is metadata about the BDR - See application note Table 82 (page 95)
@@ -585,7 +584,7 @@ uint8_t LSM6DS032::fifo_pop(Fifo<Vector<double, 4>> &accFifo, Fifo<Vector<double
             byte BDR_SHUB = data[5] & 0b00001111; // Sensor hub BDR
             XL_BDR = (BATCHING_DATA_RATES)(data[6] & 0b00001111); // update Accelerometer BDR
             GY_BDR = (BATCHING_DATA_RATES)((data[6] & 0b11110000) >> 4); // update Gyroscope BDR
-//            Serial.printf("\nTimestamp: %d\n", timestamp_lsb);
+            break;
         }
 
         // cfg change - 0x05
@@ -598,7 +597,7 @@ uint8_t LSM6DS032::fifo_pop(Fifo<Vector<double, 4>> &accFifo, Fifo<Vector<double
             double y = (short)((data[4]<<8) | data[3]) * accel_conversion_factor;
             double z = (short)((data[6]<<8) | data[5]) * accel_conversion_factor;
             auto t = static_cast<double>(timestamp_lsb - get_timestamp_increment()*2); // data(i-2)
-            accFifo.push(Vector<double, 4>{x,y,z,t});
+            acc_fifo.push(Vector<double, 4>{x,y,z,t});
             break;
         }
 
@@ -609,10 +608,9 @@ uint8_t LSM6DS032::fifo_pop(Fifo<Vector<double, 4>> &accFifo, Fifo<Vector<double
             double y = (short)((data[4]<<8) | data[3]) * accel_conversion_factor;
             double z = (short)((data[6]<<8) | data[5]) * accel_conversion_factor;
             auto t = static_cast<double>(timestamp_lsb - get_timestamp_increment()*1); // data(i-2)
-            accFifo.push(Vector<double, 4> {x,y,z,t});
+            acc_fifo.push(Vector<double, 4> {x,y,z,t});
             break;
         }
-
 
         case(FIFO_TAG::ACCEL_2_X_C): // 0x08 // low compression
         {
@@ -624,23 +622,22 @@ uint8_t LSM6DS032::fifo_pop(Fifo<Vector<double, 4>> &accFifo, Fifo<Vector<double
             // data(i) = diff(i) + data(i-1)
 
             // 8 bit signed data - See application note Table 88 (page 109)
-            Vector<double, 4> v3 = accFifo.peekBack(3); // data(i-3)
-            double datax2 = (data[1] * accel_conversion_factor) + v3[0]; // diff(i - 2) + data(i - 3)
-            double datay2 = (data[2] * accel_conversion_factor) + v3[1]; // diff(i - 2) + data(i - 3)
-            double dataz2 = (data[3] * accel_conversion_factor) + v3[2]; // diff(i - 2) + data(i - 3)
+            Vector<double, 4> v3 = acc_fifo.peekFront(); // data(i-3)
+            double datax2 = (data[1] * accel_conversion_factor) + v3[0]; // data(i - 2) = diff(i - 2) + data(i - 3)
+            double datay2 = (data[2] * accel_conversion_factor) + v3[1]; // data(i - 2) = diff(i - 2) + data(i - 3)
+            double dataz2 = (data[3] * accel_conversion_factor) + v3[2]; // data(i - 2) = diff(i - 2) + data(i - 3)
             double t2 = static_cast<double>(timestamp_lsb - get_timestamp_increment()*2); // data(i-2)
 
-            Vector<double, 4> v2 = accFifo.peekBack(2); // data(i-2)
-            double datax1 = (data[4] * accel_conversion_factor) + v2[0]; // diff(i - 1) + data(i - 2)
-            double datay1 = (data[5] * accel_conversion_factor) + v2[1]; // diff(i - 1) + data(i - 2)
-            double dataz1 = (data[6] * accel_conversion_factor) + v2[2]; // diff(i - 1) + data(i - 2)
+
+            double datax1 = (data[4] * accel_conversion_factor) + datax2; // data(i - 1) = diff(i - 1) + data(i - 2)
+            double datay1 = (data[5] * accel_conversion_factor) + datay2; // data(i - 1) = diff(i - 1) + data(i - 2)
+            double dataz1 = (data[6] * accel_conversion_factor) + dataz2; // data(i - 1) = diff(i - 1) + data(i - 2)
             double t1 = static_cast<double>(timestamp_lsb - get_timestamp_increment()*1); // data(i-1)
 
-            accFifo.push(Vector<double, 4> {datax2, datay2, dataz2, t2});
-            accFifo.push(Vector<double, 4> {datax1, datay1, dataz1, t1});
+            acc_fifo.push(Vector<double, 4> {datax2, datay2, dataz2, t2});
+            acc_fifo.push(Vector<double, 4> {datax1, datay1, dataz1, t1});
             break;
         }
-
 
         case(FIFO_TAG::ACCEL_3_X_C): // 0x09 // high compression
         {
@@ -654,27 +651,29 @@ uint8_t LSM6DS032::fifo_pop(Fifo<Vector<double, 4>> &accFifo, Fifo<Vector<double
             short FIFO_DATA_OUT_Z = (short)((data[6]<<8) | data[5]);
 
             // 5 bit signed data - See application note Table 89 (page 109)
-            Vector<double, 4> v3 = accFifo.peekBack(3); // data(i-3)
-            double datax2 = (( FIFO_DATA_OUT_X & 0b0000000000011111)        * accel_conversion_factor) + v3[0]; // diff(i - 2) + data(i - 3)
-            double datay2 = (((FIFO_DATA_OUT_X & 0b0000001111100000) >> 5)  * accel_conversion_factor) + v3[1]; // diff(i - 2) + data(i - 3)
-            double dataz2 = (((FIFO_DATA_OUT_X & 0b0111110000000000) >> 10) * accel_conversion_factor) + v3[2]; // diff(i - 2) + data(i - 3)
-            double t2 = static_cast<double>(timestamp_lsb - get_timestamp_increment()*2); // data(i-2)
+            Vector<double, 4> v3 = acc_fifo.peekFront(); // data(i-3)
+            //if (Serial)Serial.printf("V3: %lf, %lf, %lf, %lf\n", v3[0], v3[1], v3[2], v3[3]);
+            // data(i - 2)
+            double datax2 = (( FIFO_DATA_OUT_X & 0b0000000000011111)        * accel_conversion_factor) + v3[0]; // data(i - 2) = diff(i - 2) + data(i - 3)
+            double datay2 = (((FIFO_DATA_OUT_X & 0b0000001111100000) >> 5)  * accel_conversion_factor) + v3[1]; // data(i - 2) = diff(i - 2) + data(i - 3)
+            double dataz2 = (((FIFO_DATA_OUT_X & 0b0111110000000000) >> 10) * accel_conversion_factor) + v3[2]; // data(i - 2) = diff(i - 2) + data(i - 3)
+            double t2 = static_cast<double>(timestamp_lsb - get_timestamp_increment()*2);
 
-            Vector<double, 4> v2 = accFifo.peekBack(2); // data(i-2)
-            double datax1 = (( FIFO_DATA_OUT_Y & 0b0000000000011111)        * accel_conversion_factor) + v2[0]; // diff(i - 1) + data(i - 2)
-            double datay1 = (((FIFO_DATA_OUT_Y & 0b0000001111100000) >> 5)  * accel_conversion_factor) + v2[1]; // diff(i - 1) + data(i - 2)
-            double dataz1 = (((FIFO_DATA_OUT_Y & 0b0111110000000000) >> 10) * accel_conversion_factor) + v2[2]; // diff(i - 1) + data(i - 2)
-            double t1 = static_cast<double>(timestamp_lsb - get_timestamp_increment()*1); // data(i-2)
+            // data(i - 1)
+            double datax1 = (( FIFO_DATA_OUT_Y & 0b0000000000011111)        * accel_conversion_factor) + datax2; // data(i - 1) = diff(i - 1) + data(i - 2)
+            double datay1 = (((FIFO_DATA_OUT_Y & 0b0000001111100000) >> 5)  * accel_conversion_factor) + datay2; // data(i - 1) = diff(i - 1) + data(i - 2)
+            double dataz1 = (((FIFO_DATA_OUT_Y & 0b0111110000000000) >> 10) * accel_conversion_factor) + dataz2; // data(i - 1) = diff(i - 1) + data(i - 2)
+            double t1 = static_cast<double>(timestamp_lsb - get_timestamp_increment()*1);
 
-            Vector<double, 4> v1 = accFifo.peekBack(1); // data(i-1)
-            double datax0 = (( FIFO_DATA_OUT_Z & 0b0000000000011111)        * accel_conversion_factor) + v1[0]; // diff(i) + data(i - 1)
-            double datay0 = (((FIFO_DATA_OUT_Z & 0b0000001111100000) >> 5)  * accel_conversion_factor) + v1[1]; // diff(i) + data(i - 1)
-            double dataz0 = (((FIFO_DATA_OUT_Z & 0b0111110000000000) >> 10) * accel_conversion_factor) + v1[2]; // diff(i) + data(i - 1)
-            double t0 = static_cast<double>(timestamp_lsb); // data(i-2)
+            // data(i)
+            double datax0 = (( FIFO_DATA_OUT_Z & 0b0000000000011111)        * accel_conversion_factor) + datax1; // data(i) = diff(i) + data(i - 1)
+            double datay0 = (((FIFO_DATA_OUT_Z & 0b0000001111100000) >> 5)  * accel_conversion_factor) + datay1; // data(i) = diff(i) + data(i - 1)
+            double dataz0 = (((FIFO_DATA_OUT_Z & 0b0111110000000000) >> 10) * accel_conversion_factor) + dataz1; // data(i) = diff(i) + data(i - 1)
+            double t0 = static_cast<double>(timestamp_lsb);
 
-            accFifo.push(Vector<double, 4> {datax2, datay2, dataz2, t2});
-            accFifo.push(Vector<double, 4> {datax1, datay1, dataz1, t1});
-            accFifo.push(Vector<double, 4> {datax0, datay0, dataz0, t0});
+            acc_fifo.push(Vector<double, 4> {datax2, datay2, dataz2, t2});
+            acc_fifo.push(Vector<double, 4> {datax1, datay1, dataz1, t1});
+            acc_fifo.push(Vector<double, 4> {datax0, datay0, dataz0, t0});
 
             // well that was _fun_
             break;
@@ -687,7 +686,7 @@ uint8_t LSM6DS032::fifo_pop(Fifo<Vector<double, 4>> &accFifo, Fifo<Vector<double
             double y = (short)((data[4]<<8) | data[3]) * gyro_conversion_factor;
             double z = (short)((data[6]<<8) | data[5]) * gyro_conversion_factor;
             double t = static_cast<double>(timestamp_lsb - get_timestamp_increment()*2);
-            gyrFifo.push(Vector<double, 4> {x, y, z, t});
+            gyr_fifo.push(Vector<double, 4> {x, y, z, t});
             break;
         }
 
@@ -698,62 +697,72 @@ uint8_t LSM6DS032::fifo_pop(Fifo<Vector<double, 4>> &accFifo, Fifo<Vector<double
             double y = (short)((data[4]<<8) | data[3]) * gyro_conversion_factor;
             double z = (short)((data[6]<<8) | data[5]) * gyro_conversion_factor;
             double t = static_cast<double>(timestamp_lsb - get_timestamp_increment()*1);
-            gyrFifo.push(Vector<double, 4> {x, y, z, t});
+            gyr_fifo.push(Vector<double, 4> {x, y, z, t});
             break;
         }
 
         case (FIFO_TAG::GYRO_2_X_C): // 0X0C // low compression
         {
+            /**
+             * 2xC, low compression, if the difference between the actual and previous data between 16 and 128 LSB: two
+               sensor samples are stored in one FIFO word; application note 9.10 (page 107)
+             */
             // 2xC, low compression; diff(i - 2), diff(i - 1) - application note (page 108)
             // data(i) = diff(i) + data(i-1)
 
             // 8 bit signed data - See application note Table 88 (page 109)
-            Vector<double, 4> v3 = gyrFifo.peekBack(3); // data(i-3)
-            double datax2 = (data[1] * gyro_conversion_factor) + v3[0]; // diff(i - 2) + data(i - 3)
-            double datay2 = (data[2] * gyro_conversion_factor) + v3[1]; // diff(i - 2) + data(i - 3)
-            double dataz2 = (data[3] * gyro_conversion_factor) + v3[2]; // diff(i - 2) + data(i - 3)
+            Vector<double, 4> v3 = gyr_fifo.peekFront(); // data(i-3)
+            double datax2 = (data[1] * gyro_conversion_factor) + v3[0]; // data(i - 2) = diff(i - 2) + data(i - 3)
+            double datay2 = (data[2] * gyro_conversion_factor) + v3[1]; // data(i - 2) = diff(i - 2) + data(i - 3)
+            double dataz2 = (data[3] * gyro_conversion_factor) + v3[2]; // data(i - 2) = diff(i - 2) + data(i - 3)
             double t2 = static_cast<double>(timestamp_lsb - get_timestamp_increment()*2); // data(i-2)
 
-            Vector<double, 4> v2 = gyrFifo.peekBack(2); // data(i-2)
-            double datax1 = (data[4] * gyro_conversion_factor) + v2[0]; // diff(i - 1) + data(i - 2)
-            double datay1 = (data[5] * gyro_conversion_factor) + v2[1]; // diff(i - 1) + data(i - 2)
-            double dataz1 = (data[6] * gyro_conversion_factor) + v2[2]; // diff(i - 1) + data(i - 2)
+
+            double datax1 = (data[4] * gyro_conversion_factor) + datax2; // data(i - 1) = diff(i - 1) + data(i - 2)
+            double datay1 = (data[5] * gyro_conversion_factor) + datay2; // data(i - 1) = diff(i - 1) + data(i - 2)
+            double dataz1 = (data[6] * gyro_conversion_factor) + dataz2; // data(i - 1) = diff(i - 1) + data(i - 2)
             double t1 = static_cast<double>(timestamp_lsb - get_timestamp_increment()*1); // data(i-1)
 
-            gyrFifo.push(Vector<double, 4> {datax2, datay2, dataz2, t2});
-            gyrFifo.push(Vector<double, 4> {datax1, datay1, dataz1, t1});
+            gyr_fifo.push(Vector<double, 4> {datax2, datay2, dataz2, t2});
+            gyr_fifo.push(Vector<double, 4> {datax1, datay1, dataz1, t1});
             break;
         }
 
         case (FIFO_TAG::GYRO_3_X_C): // 0x0D // high compression
         {
+            /*
+             * 3xC, high compression, if the difference between the actual and previous data is less than 16 LSB: three
+               sensor samples are stored in one FIFO word. application note 9.10 (page 107)
+             */
             // 3xC, high compression; diff(i - 2), diff(i - 1), diff(i) - application note (page 108)
             short FIFO_DATA_OUT_X = (short)((data[2]<<8) | data[1]);
             short FIFO_DATA_OUT_Y = (short)((data[4]<<8) | data[3]);
             short FIFO_DATA_OUT_Z = (short)((data[6]<<8) | data[5]);
 
             // 5 bit signed data - See application note Table 89 (page 109)
-            Vector<double, 4> v3 = gyrFifo.peekBack(3); // data(i-3)
-            double datax2 = (( FIFO_DATA_OUT_X & 0b0000000000011111)        * gyro_conversion_factor) + v3[0]; // diff(i - 2) + data(i - 3)
-            double datay2 = (((FIFO_DATA_OUT_X & 0b0000001111100000) >> 5)  * gyro_conversion_factor) + v3[1]; // diff(i - 2) + data(i - 3)
-            double dataz2 = (((FIFO_DATA_OUT_X & 0b0111110000000000) >> 10) * gyro_conversion_factor) + v3[2]; // diff(i - 2) + data(i - 3)
-            double t2 = static_cast<double>(timestamp_lsb - get_timestamp_increment()*2); // data(i-2)
+            Vector<double, 4> v3 = gyr_fifo.peekFront(); // data(i-3)
+            if (Serial)Serial.printf("V3: %lf, %lf, %lf, %lf\n", v3[0], v3[1], v3[2], v3[3]);
+            // data(i - 2)
+            double datax2 = (( FIFO_DATA_OUT_X & 0b0000000000011111)        * gyro_conversion_factor) + v3[0]; // data(i - 2) = diff(i - 2) + data(i - 3)
+            double datay2 = (((FIFO_DATA_OUT_X & 0b0000001111100000) >> 5)  * gyro_conversion_factor) + v3[1]; // data(i - 2) = diff(i - 2) + data(i - 3)
+            double dataz2 = (((FIFO_DATA_OUT_X & 0b0111110000000000) >> 10) * gyro_conversion_factor) + v3[2]; // data(i - 2) = diff(i - 2) + data(i - 3)
+            double t2 = static_cast<double>(timestamp_lsb - get_timestamp_increment()*2);
 
-            Vector<double, 4> v2 = gyrFifo.peekBack(2); // data(i-2)
-            double datax1 = (( FIFO_DATA_OUT_Y & 0b0000000000011111)        * gyro_conversion_factor) + v2[0]; // diff(i - 1) + data(i - 2)
-            double datay1 = (((FIFO_DATA_OUT_Y & 0b0000001111100000) >> 5)  * gyro_conversion_factor) + v2[1]; // diff(i - 1) + data(i - 2)
-            double dataz1 = (((FIFO_DATA_OUT_Y & 0b0111110000000000) >> 10) * gyro_conversion_factor) + v2[2]; // diff(i - 1) + data(i - 2)
-            double t1 = static_cast<double>(timestamp_lsb - get_timestamp_increment()*1); // data(i-2)
+            // data(i - 1)
+            double datax1 = (( FIFO_DATA_OUT_Y & 0b0000000000011111)        * gyro_conversion_factor) + datax2; // data(i - 1) = diff(i - 1) + data(i - 2)
+            double datay1 = (((FIFO_DATA_OUT_Y & 0b0000001111100000) >> 5)  * gyro_conversion_factor) + datay2; // data(i - 1) = diff(i - 1) + data(i - 2)
+            double dataz1 = (((FIFO_DATA_OUT_Y & 0b0111110000000000) >> 10) * gyro_conversion_factor) + dataz2; // data(i - 1) = diff(i - 1) + data(i - 2)
+            double t1 = static_cast<double>(timestamp_lsb - get_timestamp_increment()*1);
 
-            Vector<double, 4> v1 = gyrFifo.peekBack(1); // data(i-1)
-            double datax0 = (( FIFO_DATA_OUT_Z & 0b0000000000011111)        * gyro_conversion_factor) + v1[0]; // diff(i) + data(i - 1)
-            double datay0 = (((FIFO_DATA_OUT_Z & 0b0000001111100000) >> 5)  * gyro_conversion_factor) + v1[1]; // diff(i) + data(i - 1)
-            double dataz0 = (((FIFO_DATA_OUT_Z & 0b0111110000000000) >> 10) * gyro_conversion_factor) + v1[2]; // diff(i) + data(i - 1)
-            double t0 = static_cast<double>(timestamp_lsb); // data(i-2)
+            // data(i)
+            double datax0 = (( FIFO_DATA_OUT_Z & 0b0000000000011111)        * gyro_conversion_factor) + datax1; // data(i) = diff(i) + data(i - 1)
+            double datay0 = (((FIFO_DATA_OUT_Z & 0b0000001111100000) >> 5)  * gyro_conversion_factor) + datay1; // data(i) = diff(i) + data(i - 1)
+            double dataz0 = (((FIFO_DATA_OUT_Z & 0b0111110000000000) >> 10) * gyro_conversion_factor) + dataz1; // data(i) = diff(i) + data(i - 1)
+            double t0 = static_cast<double>(timestamp_lsb);
 
-            gyrFifo.push(Vector<double, 4> {datax2, datay2, dataz2, t2});
-            gyrFifo.push(Vector<double, 4> {datax1, datay1, dataz1, t1});
-            gyrFifo.push(Vector<double, 4> {datax0, datay0, dataz0, t0});
+            gyr_fifo.push(Vector<double, 4> {datax2, datay2, dataz2, t2});
+            gyr_fifo.push(Vector<double, 4> {datax1, datay1, dataz1, t1});
+            gyr_fifo.push(Vector<double, 4> {datax0, datay0, dataz0, t0});
 
             // well that was _fun_
             break;
@@ -776,12 +785,12 @@ uint8_t LSM6DS032::fifo_pop(Fifo<Vector<double, 4>> &accFifo, Fifo<Vector<double
 
 
 
-uint8_t LSM6DS032::default_configuration() {
+uint8_t LSM6DS032::default_configuration(Fifo<Vector<double, 4>>& acc_fifo, Fifo<Vector<double, 4>>& gyr_fifo) {
     software_reset();
     set_fifo_watermark(511);
     stop_on_WTM(false);
     /// FIFO compression
-    set_uncompressed_data_rate(UNCOMPRESSED_DATA_BATCHING_RATES::UNCOPTR_0);
+    set_uncompressed_data_rate(UNCOMPRESSED_DATA_BATCHING_RATES::UNCOPTR_8);
 
     /*
      * Accelerometer and gyroscope batch data rate (BDR) can be configured independently, but the compression
@@ -791,10 +800,10 @@ uint8_t LSM6DS032::default_configuration() {
      */
     /// Enable FIFO compression
     enable_fifo_compression(true);
-    enable_fifo_compression_runtime(true);
+    enable_fifo_compression_runtime(false);
 
     /// BATCHING DATA RATES
-    set_batching_data_rates(BATCHING_DATA_RATES::BDR_104Hz, BATCHING_DATA_RATES::BDR_104Hz); // accel, gyro
+    set_batching_data_rates(BATCHING_DATA_RATES::BDR_417Hz, BATCHING_DATA_RATES::NO_BATCHING); // accel, gyro
     set_timestamp_batching_decimation(TIMESTAMP_BATCHING_DECIMATION::DECIMATION_8); // timestamp decimation
 
     /// FIFO MODE
@@ -807,9 +816,9 @@ uint8_t LSM6DS032::default_configuration() {
     /// INT1, INT2
 
 
-    set_accel_ODR(OUTPUT_DATA_RATES::ODR_833_HZ);
+    set_accel_ODR(OUTPUT_DATA_RATES::ODR_1667_HZ);
     set_accel_full_scale(ACCEL_FULL_SCALE::ACCEL_SCALE_32G);
-    set_gyro_ODR(OUTPUT_DATA_RATES::ODR_833_HZ);
+    set_gyro_ODR(OUTPUT_DATA_RATES::ODR_1667_HZ);
     set_gyro_full_scale(GYRO_FULL_SCALE::GYRO_SCALE_2000DPS);
     set_interrupts_active_low(false);
     set_SPI_as_3_wire(false);
@@ -832,6 +841,8 @@ uint8_t LSM6DS032::default_configuration() {
     accel_high_pass_selection(false); // lpf2
     set_accel_high_pass_or_LPF2_filter_cutoff(ACCEL_HP_OR_LPF2_CUTOFF::ODR_OVER_800);
     enable_accel_fast_settling_mode(true);
+
+
 
 
 

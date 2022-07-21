@@ -2,11 +2,12 @@
 // Created by robosam2003 on 22/06/2022.
 //
 
-#ifndef ARDUINO_LSM6DS032_DEVICE_H
-#define ARDUINO_LSM6DS032_DEVICE_H
+#ifndef PROTOCOL_H
+#define PROTOCOL_H
 
 #include "Wire.h"
 #include "SPI.h"
+// TODO: Add UART support?
 
 byte getBit(byte bits, int bitIndex);
 void setBit(byte* bits, int bitIndex, int val);
@@ -61,8 +62,8 @@ public:
     uint8_t write_reg(byte regAddress, byte data) override;
     uint8_t write_regs(byte regAddress ,byte* writeBuffer, uint length) override;
 
-    ~SPIProtocol() { _spi.end(); }; // destructor
+    ~SPIProtocol() { _spi.end(); }; // destructor - For if you want to control the protocol's lifetime
 
 };
 
-#endif //ARDUINO_LSM6DS032_DEVICE_H
+#endif //PROTOCOL_H

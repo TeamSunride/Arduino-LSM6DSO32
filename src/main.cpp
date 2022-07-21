@@ -33,22 +33,32 @@ void setup() {
     Vector<double, 3> a;
 
     LSM.begin();
-    LSM.default_configuration();
+    LSM.default_configuration(accFifo, gyrFifo);
 
     fifo_status = LSM.get_fifo_status();
     delay(1000);
 
 }
 
-
+Vector<double, 4> acc = {0,0,0,0};
 void loop() {
     unsigned long start = micros();
     fifo_status = LSM.get_fifo_status();
     int num_unread = fifo_status.num_fifo_unread;
-    //Serial.printf("\nNum Unread: %d\n", num_unread);
+    //if (Serial) Serial.printf("\nNum Unread: %d\n", num_unread);
+    accFifo.push(acc);
     for (int i=0;i<num_unread;i++) {
         LSM.fifo_pop(accFifo, gyrFifo);
     }
+
+    accFifo.pop(); // pop stale acc value.
+    int num_acc = accFifo.size()-accFifo.free_space();
+
+    for (int i=0;i<num_acc;i++) {
+        acc = accFifo.pop();
+        if (Serial) Serial.printf("%lf, %lf, %lf\n", acc[0], acc[1], acc[2]);
+    }
+
 
 
 

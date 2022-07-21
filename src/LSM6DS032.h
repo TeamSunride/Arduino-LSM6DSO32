@@ -197,14 +197,14 @@ public:
 
     LSM_FIFO_STATUS get_fifo_status();
     int get_timestamp_increment();
-    uint8_t fifo_pop(Fifo<Vector<double, 4>>& accFifo, Fifo<Vector<double, 4>>& gyrFifo);
+    uint8_t fifo_pop(Fifo<Vector<double, 4>>& acc_fifo, Fifo<Vector<double, 4>>& gyr_fifo);
 
 
 
 
 
 
-    uint8_t default_configuration();
+    uint8_t default_configuration(Fifo<Vector<double, 4>>& acc_fifo, Fifo<Vector<double, 4>>& gyr_fifo);
 
 
 

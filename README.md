@@ -15,7 +15,6 @@ LSM6DS032 LSM(CS_pin, SPI, settings);
 LSM6DS032 LSM(&Wire, 1000000);
 ```
 
-~~fun~~
 
 Wiring guide:
 ```mermaid
