@@ -198,6 +198,7 @@ public:
     LSM_FIFO_STATUS get_fifo_status();
     int get_timestamp_increment();
     uint8_t fifo_pop(Fifo<Vector<double, 4>>& acc_fifo, Fifo<Vector<double, 4>>& gyr_fifo);
+    void fifo_clear();
 
 
 

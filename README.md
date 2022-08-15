@@ -3,7 +3,7 @@ Arduino library for the LSM6DSO32 inertial module https://www.st.com/en/mems-and
 
 
 # Usage
-Use the appropriate constructor for your configuration:
+Use the appropriate constructor for your configuration: (see [protocol](https://github.com/TeamSunride/Protocol))
 - SPI constructor: (recommended)
 ```cpp
 #define CS_pin 10 // e.g.
@@ -31,7 +31,7 @@ graph TD;
 
 
 With the correct configuration (see `default_configuration()`) calling `fifo_pop` will pop from the LSM FIFO into the acceleration and gyroscope FIFOs.
-Note that ACC FIFO and GYRO FIFO are FIFOs of _type_ `Vector<double, 3>`, so they are FIFOs of Vectors.
+Note that ACC FIFO and GYRO FIFO are FIFOs of _type_ `Vector<double, 4>`, so they are FIFOs of Vectors.
 ```mermaid
 graph TD;
     rawData[Raw Sensor Data]-- Continuously Streaming ---lsmFifo[LSM FIFO];

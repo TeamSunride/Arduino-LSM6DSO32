@@ -6,6 +6,10 @@
 #include <Wire.h>
 #include "Fifo.h" // dynamically allocated Version.
 
+// TODO: Make Fifo, Vector, Protocol, as submodules
+// TODO: README - photos etc
+// TODO: examples folder
+
 
 #define DEBUG Serial.printf("%s %d\n", __FILE__, __LINE__)
 
@@ -19,7 +23,7 @@
 
 /* Usage */
 #define CS_pin 10
-SPISettings settings = SPISettings(4000000, MSBFIRST, SPI_MODE0);
+SPISettings settings = SPISettings(4000000, MSBFIRST, SPI_MODE2);
 LSM6DS032 LSM(CS_pin, SPI, settings); // spi protocol constructor
 //LSM6DS032 LSM(&Wire, 1000000); // i2c protocol constructor
 
@@ -37,7 +41,7 @@ void setup() {
 
     fifo_status = LSM.get_fifo_status();
     delay(1000);
-
+    LSM.fifo_clear();
 }
 
 Vector<double, 4> acc = {0,0,0,0};
@@ -63,5 +67,5 @@ void loop() {
 
 
     //Serial.printf("\nTime: %d\n", micros() - start);
-    delayMicroseconds(10000-(micros()-start));
+    delayMicroseconds(5000-(micros()-start));
 }

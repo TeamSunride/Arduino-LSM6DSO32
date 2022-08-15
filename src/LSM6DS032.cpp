@@ -502,6 +502,27 @@ int LSM6DS032::get_timestamp_increment(){
     return 0;
 }
 
+byte getNumOnes(byte data) {
+    byte numOnes = 0;
+    for (int i=0;i<8;i++) {
+        if (getBit(data, i)) {
+            numOnes += 1;
+        }
+
+    }
+    return numOnes;
+}
+
+void LSM6DS032::fifo_clear() {
+    LSM_FIFO_STATUS fifo_status = this->get_fifo_status();
+    int num_unread = fifo_status.num_fifo_unread;
+    byte data[7] = {};
+    for (int i=0;i<num_unread;i++) {
+        device->read_regs(LSM6DS032_REGISTER::FIFO_DATA_OUT_TAG, data, 7);
+    }
+}
+
+
 uint8_t LSM6DS032::fifo_pop(Fifo<Vector<double, 4>> &acc_fifo, Fifo<Vector<double, 4>> &gyr_fifo) { // three data fields then one timestamp.
     /*
      * When FIFO is enabled and the mode is different from Bypass, reading the FIFO output registers return the oldest
@@ -526,13 +547,19 @@ uint8_t LSM6DS032::fifo_pop(Fifo<Vector<double, 4>> &acc_fifo, Fifo<Vector<doubl
 
     // The tag counter is synchronized with the highest BDR. It is for making sense of the time slot in which compressed sensor data occurred. - See application note 9.4 (page 94)
     byte tag_cnt = (data[0] & 0b00000110) >> 1;
+    byte tag_parity = data[0] & 0b00000001;
+    if ((getNumOnes(data[0]) % 2) != 0) {
+        Serial.printf("Tag parity error: %d\n", getNumOnes(data[0]));
+    }
+
+
     if (Serial)Serial.printf("Tag: 0X%X\n", tag);
     //if (Serial)Serial.printf("Tag Counter: %d\n", tag_cnt);
     int i=0;
     while ((((prev_tag_cnt+i)%4) != tag_cnt)) { i++; }
 
     timestamp_lsb += i*get_timestamp_increment();
-
+    prev_tag_cnt = tag_cnt;
 
 
 
@@ -587,8 +614,7 @@ uint8_t LSM6DS032::fifo_pop(Fifo<Vector<double, 4>> &acc_fifo, Fifo<Vector<doubl
             break;
         }
 
-        // cfg change - 0x05
-        // TODO: CGF change - Rather complicated tbh, don't think its necessary for most projects.
+        // cfg change - 0x05 - Not implemented.
 
         case(FIFO_TAG::ACCEL_NC_T_2): // 0x06
         {
@@ -607,10 +633,14 @@ uint8_t LSM6DS032::fifo_pop(Fifo<Vector<double, 4>> &acc_fifo, Fifo<Vector<doubl
             double x = (short)((data[2]<<8) | data[1]) * accel_conversion_factor;
             double y = (short)((data[4]<<8) | data[3]) * accel_conversion_factor;
             double z = (short)((data[6]<<8) | data[5]) * accel_conversion_factor;
-            auto t = static_cast<double>(timestamp_lsb - get_timestamp_increment()*1); // data(i-2)
+            auto t = static_cast<double>(timestamp_lsb - get_timestamp_increment()*1); // data(i-1)
             acc_fifo.push(Vector<double, 4> {x,y,z,t});
             break;
         }
+
+        /*
+         * Compression is buggy, at least on my module, so I recommend not using it.
+         */
 
         case(FIFO_TAG::ACCEL_2_X_C): // 0x08 // low compression
         {
@@ -623,12 +653,14 @@ uint8_t LSM6DS032::fifo_pop(Fifo<Vector<double, 4>> &acc_fifo, Fifo<Vector<doubl
 
             // 8 bit signed data - See application note Table 88 (page 109)
             Vector<double, 4> v3 = acc_fifo.peekFront(); // data(i-3)
+
+            // data(i - 2)
             double datax2 = (data[1] * accel_conversion_factor) + v3[0]; // data(i - 2) = diff(i - 2) + data(i - 3)
             double datay2 = (data[2] * accel_conversion_factor) + v3[1]; // data(i - 2) = diff(i - 2) + data(i - 3)
             double dataz2 = (data[3] * accel_conversion_factor) + v3[2]; // data(i - 2) = diff(i - 2) + data(i - 3)
             double t2 = static_cast<double>(timestamp_lsb - get_timestamp_increment()*2); // data(i-2)
 
-
+            // data(i - 1)
             double datax1 = (data[4] * accel_conversion_factor) + datax2; // data(i - 1) = diff(i - 1) + data(i - 2)
             double datay1 = (data[5] * accel_conversion_factor) + datay2; // data(i - 1) = diff(i - 1) + data(i - 2)
             double dataz1 = (data[6] * accel_conversion_factor) + dataz2; // data(i - 1) = diff(i - 1) + data(i - 2)
@@ -652,7 +684,6 @@ uint8_t LSM6DS032::fifo_pop(Fifo<Vector<double, 4>> &acc_fifo, Fifo<Vector<doubl
 
             // 5 bit signed data - See application note Table 89 (page 109)
             Vector<double, 4> v3 = acc_fifo.peekFront(); // data(i-3)
-            //if (Serial)Serial.printf("V3: %lf, %lf, %lf, %lf\n", v3[0], v3[1], v3[2], v3[3]);
             // data(i - 2)
             double datax2 = (( FIFO_DATA_OUT_X & 0b0000000000011111)        * accel_conversion_factor) + v3[0]; // data(i - 2) = diff(i - 2) + data(i - 3)
             double datay2 = (((FIFO_DATA_OUT_X & 0b0000001111100000) >> 5)  * accel_conversion_factor) + v3[1]; // data(i - 2) = diff(i - 2) + data(i - 3)
@@ -800,10 +831,10 @@ uint8_t LSM6DS032::default_configuration(Fifo<Vector<double, 4>>& acc_fifo, Fifo
      */
     /// Enable FIFO compression
     enable_fifo_compression(true);
-    enable_fifo_compression_runtime(false);
+    enable_fifo_compression_runtime(false); // Compression is buggy, so I recommend using uncompressed.
 
     /// BATCHING DATA RATES
-    set_batching_data_rates(BATCHING_DATA_RATES::BDR_417Hz, BATCHING_DATA_RATES::NO_BATCHING); // accel, gyro
+    set_batching_data_rates(BATCHING_DATA_RATES::BDR_1667Hz, BATCHING_DATA_RATES::NO_BATCHING); // accel, gyro
     set_timestamp_batching_decimation(TIMESTAMP_BATCHING_DECIMATION::DECIMATION_8); // timestamp decimation
 
     /// FIFO MODE
@@ -816,9 +847,9 @@ uint8_t LSM6DS032::default_configuration(Fifo<Vector<double, 4>>& acc_fifo, Fifo
     /// INT1, INT2
 
 
-    set_accel_ODR(OUTPUT_DATA_RATES::ODR_1667_HZ);
+    set_accel_ODR(OUTPUT_DATA_RATES::ODR_6667_HZ);
     set_accel_full_scale(ACCEL_FULL_SCALE::ACCEL_SCALE_32G);
-    set_gyro_ODR(OUTPUT_DATA_RATES::ODR_1667_HZ);
+    set_gyro_ODR(OUTPUT_DATA_RATES::ODR_6667_HZ);
     set_gyro_full_scale(GYRO_FULL_SCALE::GYRO_SCALE_2000DPS);
     set_interrupts_active_low(false);
     set_SPI_as_3_wire(false);
@@ -827,7 +858,7 @@ uint8_t LSM6DS032::default_configuration(Fifo<Vector<double, 4>>& acc_fifo, Fifo
     enable_data_ready_mask(true);
     enable_i2c_interface(true);
     enable_gyro_LPF1(false);
-    //enable_rounding(false, false); // rounding??
+    enable_rounding(true, true); // rounding??
     enable_accel_high_performance_mode(true); /// The cutoff value of the LPF1 output is ODR/2 when the accelerometer is in high-performance mode. This
                                               ///  value is equal to 700 Hz when the accelerometer is in low-power or normal mode.
 
@@ -857,4 +888,5 @@ uint8_t LSM6DS032::default_configuration(Fifo<Vector<double, 4>>& acc_fifo, Fifo
 
     return 0;
 }
+
 
