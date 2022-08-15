@@ -8,7 +8,7 @@
 #include "LSM6DS032_registers.h"
 #include "LSM6DS032_constants.h"
 #include "Vector.h"
-#include "Fifo.h"
+#include "dynamicFifo.h" // using dynamically allocated fifo because fifo size is not known at compile time.
 
 
 

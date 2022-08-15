@@ -4,7 +4,8 @@
 #include "LSM6DS032_registers.h"
 #include "LSM6DS032.h"
 #include <Wire.h>
-#include "Fifo.h" // dynamically allocated Version.
+#include "dynamicFifo.h" // dynamically allocated fifo
+
 
 // TODO: Make Fifo, Vector, Protocol, as submodules
 // TODO: README - photos etc

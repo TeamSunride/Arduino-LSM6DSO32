@@ -1,0 +1,9 @@
+[submodule "lib/Vector"]
+	path = lib/Vector
+	url = https://github.com/TeamSunride/Vector
+[submodule "lib/Fifo"]
+	path = lib/Fifo
+	url = https://github.com/TeamSunride/Fifo
+[submodule "lib/Protocol"]
+	path = lib/Protocol
+	url = https://github.com/TeamSunride/Protocol
