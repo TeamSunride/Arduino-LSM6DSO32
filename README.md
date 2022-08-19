@@ -39,3 +39,15 @@ graph TD;
    
 ```
 
+
+# Compression
+This library correctly implements the built in compression algorithm in the LSM6DSO32 FIFO. In my testing however, the device does not always perform optimally while the onboard compression algorithm is active:
+
+
+Example: the device outputs 0 on all accelerometer axis while the device is at rest on a desk. This **never** happens using uncompressed data + FIFO.
+<img src="https://github.com/TeamSunride/Arduino-LSM6DSO32/blob/main/resources/Screenshot%202022-08-19%20180214.jpg">
+
+Example: the device outputs very sharp acceleration values on *all* axis when the device is plonked onto the table. This is not how the device behaves when using uncompressed data.
+<img src = "https://github.com/TeamSunride/Arduino-LSM6DSO32/blob/main/resources/Screenshot%202022-08-19%20181016.jpg">
+
+I am actively investigating these issues - there's a chance there's a bug in my code I'm not seeing.
