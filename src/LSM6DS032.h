@@ -56,9 +56,24 @@ protected:
     BATCHING_DATA_RATES XL_BDR; // needed for timestamp-timestamp counter hybrid.
     BATCHING_DATA_RATES GY_BDR;
 public:
-    LSM6DS032(TwoWire *pipe, uint32_t freq); // constructor overload for I2C protocol
-    LSM6DS032(byte chipSelect, SPIClass& spi, SPISettings settings); // constructor overload for SPI protocol
+    /**
+     * @brief Constructor overload for I2C protocol
+     * @param pipe
+     * @param freq
+     */
+    LSM6DS032(TwoWire *pipe, uint32_t freq);
 
+    /**
+     * @brief Constructor overload for SPI protocol
+     * @param chipSelect
+     * @param spi
+     * @param settings
+     */
+    LSM6DS032(byte chipSelect, SPIClass& spi, SPISettings settings);
+
+    /**
+     * @brief begin the device
+     */
     void begin() {
         device->protocol_begin();
         // any other set up etc
@@ -91,16 +106,45 @@ public:
      * @return Status code (0 for success)
      */
     uint8_t enable_sdo_pullup(bool enable);
+
+    /**
+     * @brief Set the watermark threshold for the FIFO (max 511)
+     * @param watermark
+     * @return Status code (0 for success)
+     */
     uint8_t set_fifo_watermark(short watermark);
+
+    /**
+     * @brief get the watermark threshold for the FIFO
+     * @return the watermark threshold for the FIFO (short)
+     */
     short get_fifo_watermark();
+
+    /**
+     * @brief Enable: FIFO depth is limited to threshold level. (Default: False)
+     * @param enable
+     * @return Status code (0 for success)
+     */
     uint8_t stop_on_WTM(bool enable);
-    uint8_t enable_fifo_compression_runtime(bool enable);
+
 
     /*
      * Accelerometer and gyroscope batch data rate (BDR) can be configured independently, but the compression
        algorithm is not supported in following configurations:
        1. Both accelerometer and gyroscope are batched in FIFO and max(ODR_XL, ODR_G) ≥ 1.66 kHz;
        2. Accelerometer only or gyroscope only is batched in FIFO and max(ODR_XL, ODR_G) ≥ 3.33 kHz.
+     */
+    /**
+     * @brief Enable/disable the fifo compression during device operation (runtime)
+     * @param enable
+     * @return Status code (0 for success)
+     */
+    uint8_t enable_fifo_compression_runtime(bool enable);
+
+    /**
+     * @brief Enable fifo compression during setup
+     * @param enable
+     * @return Status code (0 for success)
      */
     uint8_t enable_fifo_compression(bool enable);
 
