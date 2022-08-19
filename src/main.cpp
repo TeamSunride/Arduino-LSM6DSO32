@@ -5,7 +5,6 @@
 #include "dynamicFifo.h" // dynamically allocated fifo
 
 
-// TODO: Make Fifo, Vector, Protocol, as submodules
 // TODO: README - photos etc
 // TODO: examples folder
 
@@ -25,6 +24,7 @@
 SPISettings settings = SPISettings(4000000, MSBFIRST, SPI_MODE2);
 LSM6DS032 LSM(CS_pin, SPI, settings); // spi protocol constructor
 //LSM6DS032 LSM(&Wire, 1000000); // i2c protocol constructor
+// TODO: I2C isn't working at the moment?
 
 Fifo<Vector<double, 4>> accFifo(1024);
 Fifo<Vector<double, 4>> gyrFifo(1024);
@@ -39,7 +39,6 @@ void setup() {
     LSM.default_configuration();
 
     fifo_status = LSM.get_fifo_status();
-    delay(1000);
     LSM.fifo_clear();
 }
 
