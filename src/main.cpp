@@ -1,7 +1,5 @@
 #include <Arduino.h>
 #include <SPI.h>
-#include "protocol.h"
-#include "LSM6DS032_registers.h"
 #include "LSM6DS032.h"
 #include <Wire.h>
 #include "dynamicFifo.h" // dynamically allocated fifo
@@ -38,7 +36,7 @@ void setup() {
     Vector<double, 3> a;
 
     LSM.begin();
-    LSM.default_configuration(accFifo, gyrFifo);
+    LSM.default_configuration();
 
     fifo_status = LSM.get_fifo_status();
     delay(1000);

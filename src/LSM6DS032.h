@@ -205,7 +205,7 @@ public:
 
 
 
-    uint8_t default_configuration(Fifo<Vector<double, 4>>& acc_fifo, Fifo<Vector<double, 4>>& gyr_fifo);
+    uint8_t default_configuration();
 
 
 

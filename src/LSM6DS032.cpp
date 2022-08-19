@@ -816,7 +816,7 @@ uint8_t LSM6DS032::fifo_pop(Fifo<Vector<double, 4>> &acc_fifo, Fifo<Vector<doubl
 
 
 
-uint8_t LSM6DS032::default_configuration(Fifo<Vector<double, 4>>& acc_fifo, Fifo<Vector<double, 4>>& gyr_fifo) {
+uint8_t LSM6DS032::default_configuration() {
     software_reset();
     set_fifo_watermark(511);
     stop_on_WTM(false);
