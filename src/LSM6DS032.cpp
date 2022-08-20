@@ -19,7 +19,7 @@ LSM6DS032::LSM6DS032(TwoWire *pipe, uint32_t freq) { // constructor for I2C prot
 }
 
 LSM6DS032::LSM6DS032(byte chipSelect, SPIClass& spi, uint freq) { // constructor for SPI protocol
-    // TODO: is there a way to assert/ensure that the SPI settings are that of the LSM6DS032? - namely, MSB first, SPI mode 2.
+
     SPISettings settings = SPISettings(4000000, MSBFIRST, SPI_MODE2);
     device = new SPIProtocol(chipSelect, spi, settings, READ_BYTE, WRITE_BYTE);
     accel_conversion_factor = 0.0098*0.978; /// Defaults to +- 32g sensitivity
@@ -325,7 +325,7 @@ uint8_t LSM6DS032::enable_data_ready_mask(bool enable) {
 
 uint8_t LSM6DS032::enable_i2c_interface(bool enable) {
     byte data = device->read_reg(LSM6DS032_REGISTER::CTRL4_C);
-    setBit(&data, 2, enable);
+    setBit(&data, 2, !enable);  // negated because this register actually DISables i2c. - Still using "enable" language for consistency.
     return device->write_reg(LSM6DS032_REGISTER::CTRL4_C, data);
 }
 
@@ -849,7 +849,6 @@ uint8_t LSM6DS032::default_configuration() {
     stop_on_WTM(false);
     /// FIFO compression
     set_uncompressed_data_rate(UNCOMPRESSED_DATA_BATCHING_RATES::UNCOPTR_8);
-
     /*
      * Accelerometer and gyroscope batch data rate (BDR) can be configured independently, but the compression
        algorithm is not supported in following configurations:
@@ -899,17 +898,6 @@ uint8_t LSM6DS032::default_configuration() {
     accel_high_pass_selection(false); // lpf2
     set_accel_high_pass_or_LPF2_filter_cutoff(ACCEL_HP_OR_LPF2_CUTOFF::ODR_OVER_45);
     enable_accel_fast_settling_mode(true);
-
-
-
-
-
-
-
-
-
-
-
 
 
 
