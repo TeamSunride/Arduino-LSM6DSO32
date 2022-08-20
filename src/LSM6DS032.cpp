@@ -587,6 +587,7 @@ uint8_t LSM6DS032::fifo_pop(Fifo<Vector<double, 4>> &acc_fifo, Fifo<Vector<doubl
             double z = (short)((data[6]<<8) | data[5]) * gyro_conversion_factor;
             auto t = static_cast<double>(timestamp_lsb);
             gyr_fifo.push(Vector<double, 4> {x,y,z,t});
+            mostRecentGyro = Vector<double, 4> {x,y,z,t}; // update mostRecentGyro to the latest reading that was pushed
             break;
         }
 
@@ -599,6 +600,7 @@ uint8_t LSM6DS032::fifo_pop(Fifo<Vector<double, 4>> &acc_fifo, Fifo<Vector<doubl
             double z = (short)((data[6]<<8) | data[5]) * accel_conversion_factor;
             auto t = static_cast<double>(timestamp_lsb);
             acc_fifo.push(Vector<double, 4> {x,y,z,t});
+            mostRecentAcc = Vector<double, 4> {x,y,z,t}; // update mostRecentAcc to the latest reading that was pushed
             break;
         }
 
@@ -634,6 +636,7 @@ uint8_t LSM6DS032::fifo_pop(Fifo<Vector<double, 4>> &acc_fifo, Fifo<Vector<doubl
             double z = (short)((data[6]<<8) | data[5]) * accel_conversion_factor;
             auto t = static_cast<double>(timestamp_lsb - get_timestamp_increment()*2); // data(i-2)
             acc_fifo.push(Vector<double, 4>{x,y,z,t});
+            mostRecentAcc = Vector<double, 4> {x,y,z,t}; // update mostRecentAcc to the latest reading that was pushed
             break;
         }
 
@@ -645,6 +648,7 @@ uint8_t LSM6DS032::fifo_pop(Fifo<Vector<double, 4>> &acc_fifo, Fifo<Vector<doubl
             double z = (short)((data[6]<<8) | data[5]) * accel_conversion_factor;
             auto t = static_cast<double>(timestamp_lsb - get_timestamp_increment()*1); // data(i-1)
             acc_fifo.push(Vector<double, 4> {x,y,z,t});
+            mostRecentAcc = Vector<double, 4> {x,y,z,t}; // update mostRecentAcc to the latest reading that was pushed
             break;
         }
 
@@ -659,12 +663,12 @@ uint8_t LSM6DS032::fifo_pop(Fifo<Vector<double, 4>> &acc_fifo, Fifo<Vector<doubl
             // data(i) = diff(i) + data(i-1)
 
             // 8-bit signed data - See application note Table 88 (page 109)
-            Vector<double, 4> v3 = acc_fifo.peekFront(); // data(i-3)
+            //Vector<double, 4> v3 = acc_fifo.peekFront(); // data(i-3)
 
             // data(i - 2)
-            double datax2 = ((int8_t)data[1] * accel_conversion_factor) + v3[0]; // data(i - 2) = diff(i - 2) + data(i - 3)
-            double datay2 = ((int8_t)data[2] * accel_conversion_factor) + v3[1]; // data(i - 2) = diff(i - 2) + data(i - 3)
-            double dataz2 = ((int8_t)data[3] * accel_conversion_factor) + v3[2]; // data(i - 2) = diff(i - 2) + data(i - 3)
+            double datax2 = ((int8_t)data[1] * accel_conversion_factor) + mostRecentAcc[0]; // data(i - 2) = diff(i - 2) + data(i - 3)
+            double datay2 = ((int8_t)data[2] * accel_conversion_factor) + mostRecentAcc[1]; // data(i - 2) = diff(i - 2) + data(i - 3)
+            double dataz2 = ((int8_t)data[3] * accel_conversion_factor) + mostRecentAcc[2]; // data(i - 2) = diff(i - 2) + data(i - 3)
             double t2 = static_cast<double>(timestamp_lsb - get_timestamp_increment()*2); // data(i-2)
 
             // data(i - 1)
@@ -675,6 +679,7 @@ uint8_t LSM6DS032::fifo_pop(Fifo<Vector<double, 4>> &acc_fifo, Fifo<Vector<doubl
 
             acc_fifo.push(Vector<double, 4> {datax2, datay2, dataz2, t2});
             acc_fifo.push(Vector<double, 4> {datax1, datay1, dataz1, t1});
+            mostRecentAcc = Vector<double, 4> {datax1, datay1, dataz1, t1}; // update mostRecentAcc to the latest reading that was pushed
             break;
         }
 
@@ -690,12 +695,12 @@ uint8_t LSM6DS032::fifo_pop(Fifo<Vector<double, 4>> &acc_fifo, Fifo<Vector<doubl
             short FIFO_DATA_OUT_Z = (short)((data[6]<<8) | data[5]);
 
             // 5 bit signed data - See application note Table 89 (page 109)
-            Vector<double, 4> v3 = acc_fifo.peekFront(); // data(i-3)
+            //Vector<double, 4> v3 = acc_fifo.peekFront(); // data(i-3)
             // data(i - 2)
-            double datax2 = (int5_t (FIFO_DATA_OUT_X & 0b0000000000011111)        * accel_conversion_factor) + v3[0]; // data(i - 2) = diff(i - 2) + data(i - 3)
-            double datay2 = (int5_t((FIFO_DATA_OUT_X & 0b0000001111100000) >> 5)  * accel_conversion_factor) + v3[1]; // data(i - 2) = diff(i - 2) + data(i - 3)
-            double dataz2 = (int5_t((FIFO_DATA_OUT_X & 0b0111110000000000) >> 10) * accel_conversion_factor) + v3[2]; // data(i - 2) = diff(i - 2) + data(i - 3)
-            //if (Serial) Serial.printf("BITS: %lf, V3[2]: %lf,  Res: %lf", ((FIFO_DATA_OUT_X & 0b0111110000000000) >> 10)*accel_conversion_factor, v3[2], dataz2);
+            double datax2 = (int5_t (FIFO_DATA_OUT_X & 0b0000000000011111)        * accel_conversion_factor) + mostRecentAcc[0]; // data(i - 2) = diff(i - 2) + data(i - 3)
+            double datay2 = (int5_t((FIFO_DATA_OUT_X & 0b0000001111100000) >> 5)  * accel_conversion_factor) + mostRecentAcc[1]; // data(i - 2) = diff(i - 2) + data(i - 3)
+            double dataz2 = (int5_t((FIFO_DATA_OUT_X & 0b0111110000000000) >> 10) * accel_conversion_factor) + mostRecentAcc[2]; // data(i - 2) = diff(i - 2) + data(i - 3)
+
             double t2 = static_cast<double>(timestamp_lsb - get_timestamp_increment()*2);
 
             // data(i - 1)
@@ -713,6 +718,7 @@ uint8_t LSM6DS032::fifo_pop(Fifo<Vector<double, 4>> &acc_fifo, Fifo<Vector<doubl
             acc_fifo.push(Vector<double, 4> {datax2, datay2, dataz2, t2});
             acc_fifo.push(Vector<double, 4> {datax1, datay1, dataz1, t1});
             acc_fifo.push(Vector<double, 4> {datax0, datay0, dataz0, t0});
+            mostRecentAcc = Vector<double, 4> {datax0, datay0, dataz0, t0}; // update mostRecentAcc to the latest reading that was pushed
 
             // well that was _fun_
             break;
@@ -726,6 +732,7 @@ uint8_t LSM6DS032::fifo_pop(Fifo<Vector<double, 4>> &acc_fifo, Fifo<Vector<doubl
             double z = (short)((data[6]<<8) | data[5]) * gyro_conversion_factor;
             double t = static_cast<double>(timestamp_lsb - get_timestamp_increment()*2);
             gyr_fifo.push(Vector<double, 4> {x, y, z, t});
+            mostRecentGyro = Vector<double, 4> {x, y, z, t}; // update mostRecentGyro to the latest reading that was pushed
             break;
         }
 
@@ -737,6 +744,7 @@ uint8_t LSM6DS032::fifo_pop(Fifo<Vector<double, 4>> &acc_fifo, Fifo<Vector<doubl
             double z = (short)((data[6]<<8) | data[5]) * gyro_conversion_factor;
             double t = static_cast<double>(timestamp_lsb - get_timestamp_increment()*1);
             gyr_fifo.push(Vector<double, 4> {x, y, z, t});
+            mostRecentGyro = Vector<double, 4> {x, y, z, t}; // update mostRecentGyro to the latest reading that was pushed
             break;
         }
 
@@ -750,10 +758,10 @@ uint8_t LSM6DS032::fifo_pop(Fifo<Vector<double, 4>> &acc_fifo, Fifo<Vector<doubl
             // data(i) = diff(i) + data(i-1)
 
             // 8 bit signed data - See application note Table 88 (page 109)
-            Vector<double, 4> v3 = gyr_fifo.peekFront(); // data(i-3)
-            double datax2 = (data[1] * gyro_conversion_factor) + v3[0]; // data(i - 2) = diff(i - 2) + data(i - 3)
-            double datay2 = (data[2] * gyro_conversion_factor) + v3[1]; // data(i - 2) = diff(i - 2) + data(i - 3)
-            double dataz2 = (data[3] * gyro_conversion_factor) + v3[2]; // data(i - 2) = diff(i - 2) + data(i - 3)
+            //Vector<double, 4> v3 = gyr_fifo.peekFront(); // data(i-3)
+            double datax2 = (data[1] * gyro_conversion_factor) + mostRecentGyro[0]; // data(i - 2) = diff(i - 2) + data(i - 3)
+            double datay2 = (data[2] * gyro_conversion_factor) + mostRecentGyro[1]; // data(i - 2) = diff(i - 2) + data(i - 3)
+            double dataz2 = (data[3] * gyro_conversion_factor) + mostRecentGyro[2]; // data(i - 2) = diff(i - 2) + data(i - 3)
             double t2 = static_cast<double>(timestamp_lsb - get_timestamp_increment()*2); // data(i-2)
 
 
@@ -764,6 +772,7 @@ uint8_t LSM6DS032::fifo_pop(Fifo<Vector<double, 4>> &acc_fifo, Fifo<Vector<doubl
 
             gyr_fifo.push(Vector<double, 4> {datax2, datay2, dataz2, t2});
             gyr_fifo.push(Vector<double, 4> {datax1, datay1, dataz1, t1});
+            mostRecentGyro = Vector<double, 4> {datax1, datay1, dataz1, t1}; // update mostRecentGyro to the latest reading that was pushed
             break;
         }
 
@@ -779,12 +788,11 @@ uint8_t LSM6DS032::fifo_pop(Fifo<Vector<double, 4>> &acc_fifo, Fifo<Vector<doubl
             short FIFO_DATA_OUT_Z = (short)((data[6]<<8) | data[5]);
 
             // 5 bit signed data - See application note Table 89 (page 109)
-            Vector<double, 4> v3 = gyr_fifo.peekFront(); // data(i-3)
-            if (Serial)Serial.printf("V3: %lf, %lf, %lf, %lf\n", v3[0], v3[1], v3[2], v3[3]);
+
             // data(i - 2)
-            double datax2 = (int5_t (FIFO_DATA_OUT_X & 0b0000000000011111)        * gyro_conversion_factor) + v3[0]; // data(i - 2) = diff(i - 2) + data(i - 3)
-            double datay2 = (int5_t((FIFO_DATA_OUT_X & 0b0000001111100000) >> 5)  * gyro_conversion_factor) + v3[1]; // data(i - 2) = diff(i - 2) + data(i - 3)
-            double dataz2 = (int5_t((FIFO_DATA_OUT_X & 0b0111110000000000) >> 10) * gyro_conversion_factor) + v3[2]; // data(i - 2) = diff(i - 2) + data(i - 3)
+            double datax2 = (int5_t (FIFO_DATA_OUT_X & 0b0000000000011111)        * gyro_conversion_factor) + mostRecentGyro[0]; // data(i - 2) = diff(i - 2) + data(i - 3)
+            double datay2 = (int5_t((FIFO_DATA_OUT_X & 0b0000001111100000) >> 5)  * gyro_conversion_factor) + mostRecentGyro[1]; // data(i - 2) = diff(i - 2) + data(i - 3)
+            double dataz2 = (int5_t((FIFO_DATA_OUT_X & 0b0111110000000000) >> 10) * gyro_conversion_factor) + mostRecentGyro[2]; // data(i - 2) = diff(i - 2) + data(i - 3)
             double t2 = static_cast<double>(timestamp_lsb - get_timestamp_increment()*2);
 
             // data(i - 1)
@@ -802,6 +810,7 @@ uint8_t LSM6DS032::fifo_pop(Fifo<Vector<double, 4>> &acc_fifo, Fifo<Vector<doubl
             gyr_fifo.push(Vector<double, 4> {datax2, datay2, dataz2, t2});
             gyr_fifo.push(Vector<double, 4> {datax1, datay1, dataz1, t1});
             gyr_fifo.push(Vector<double, 4> {datax0, datay0, dataz0, t0});
+            mostRecentGyro = Vector<double, 4> {datax0, datay0, dataz0, t0}; // update mostRecentGyro to the latest reading that was pushed
 
             // well that was _fun_
             break;

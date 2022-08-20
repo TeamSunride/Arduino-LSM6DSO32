@@ -48,20 +48,17 @@ void loop() {
     fifo_status = LSM.get_fifo_status();
     int num_unread = fifo_status.num_fifo_unread;
     //if (Serial) Serial.printf("\nNum Unread: %d\n", num_unread);
-    accFifo.push(acc);
     for (int i=0;i<num_unread;i++) {
         LSM.fifo_pop(accFifo, gyrFifo);
     }
 
-    accFifo.pop(); // pop stale acc value.
-    int num_acc = accFifo.size()-accFifo.free_space();
-
-    for (int i=0;i<num_acc;i++) {
-        acc = accFifo.pop();
-        if (Serial) Serial.printf("%lf, %lf, %lf\n", acc[0], acc[1], acc[2]);
-        if (acc[0] + acc[1] + acc[2] == 0) Serial.printf("------------------------------------------------ZERO-------------------------------------------------\n");
+    if (accFifo.fifo_status() != Fifo_STATUS::Fifo_EMPTY) {
+        int usedSpace = accFifo.used_space();
+        for (int i = 0; i < usedSpace; i++) {
+            acc = accFifo.pop();
+            if (Serial) Serial.printf("%lf, %lf, %lf\n", acc[0], acc[1], acc[2]);
+        }
     }
-
 
 
 

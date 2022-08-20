@@ -55,6 +55,10 @@ protected:
     byte prev_tag_cnt; // stores the previous value of the tag counter from the fifo
     BATCHING_DATA_RATES XL_BDR; // needed for timestamp-timestamp counter hybrid.
     BATCHING_DATA_RATES GY_BDR;
+
+    // For compression purposes
+    Vector<double, 4> mostRecentAcc;
+    Vector<double, 4> mostRecentGyro;
 public:
     /**
      * @brief Constructor overload for I2C protocol

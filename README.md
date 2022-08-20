@@ -42,9 +42,11 @@ graph TD;
 
 # Compression
 This library correctly implements the built-in compression algorithm in the LSM6DSO32 FIFO.
-Note that while the onboard compression is active, the device can occasionally output Zero for all axis: - I am investigating this (check tag parity?)
 
+The compression algorithm onboard the LSM6DSO32 analyses the data and when possible, batches the data in the FIFO in a more compact data format, 
+allowing for the 3 kbyte FIFO to have an effective capacity of over 9 kbyte. See the datasheet and application note for more details
 
-Example: the device randomly outputs 0 on all accelerometer axis while the device is at rest on a desk. This **never** happens using uncompressed data + FIFO.
-<img src="https://github.com/TeamSunride/Arduino-LSM6DSO32/blob/main/resources/Screenshot%202022-08-19%20180214.jpg">
+The output using when using compression is identical to the uncompressed data stream, which means the library correctly decompresses the data:
+
+<img src="https://github.com/TeamSunride/Arduino-LSM6DSO32/blob/main/resources/outputUsingCompression.jpg">
 
