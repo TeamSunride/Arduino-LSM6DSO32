@@ -56,7 +56,7 @@ protected:
     BATCHING_DATA_RATES XL_BDR; // needed for timestamp-timestamp counter hybrid.
     BATCHING_DATA_RATES GY_BDR;
 
-    // For compression purposes
+    // For compression algorithm.
     Vector<double, 4> mostRecentAcc;
     Vector<double, 4> mostRecentGyro;
 public:
@@ -73,7 +73,7 @@ public:
      * @param spi
      * @param settings
      */
-    LSM6DS032(byte chipSelect, SPIClass& spi, SPISettings settings);
+    LSM6DS032(byte chipSelect, SPIClass& spi, uint freq);
 
     /**
      * @brief begin the device

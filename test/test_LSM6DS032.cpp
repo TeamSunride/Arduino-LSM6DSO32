@@ -10,8 +10,8 @@
 #define CS_pin 10
 #define WHO_AM_I_ID 0x6C
 
-SPISettings settingsTest = SPISettings(4000000, MSBFIRST, SPI_MODE2);
-LSM6DS032 LSMTest(CS_pin, SPI, settingsTest);
+
+LSM6DS032 LSMTest(CS_pin, SPI, 4000000);
 
 void setUp(void) {
     // set stuff up here

@@ -7,8 +7,7 @@ Use the appropriate constructor for your configuration: (see [protocol](https://
 - SPI constructor: (recommended)
 ```cpp
 #define CS_pin 10 // e.g.
-SPISettings settings = SPISettings(4000000, MSBFIRST, SPI_MODE0);
-LSM6DS032 LSM(CS_pin, SPI, settings);
+LSM6DS032 LSM(CS_pin, SPI, 4000000);
 ```
 - I2C constructor:
 ```cpp
@@ -46,7 +45,7 @@ This library correctly implements the built-in compression algorithm in the LSM6
 The compression algorithm onboard the LSM6DSO32 analyses the data and when possible, batches the data in the FIFO in a more compact data format, 
 allowing for the 3 kbyte FIFO to have an effective capacity of over 9 kbyte. See the datasheet and application note for more details
 
-The output using when using compression is identical to the uncompressed data stream, which means the library correctly decompresses the data:
+The output when using compression is identical to the uncompressed data stream, which means the library correctly decompresses the data:
 
 <img src="https://github.com/TeamSunride/Arduino-LSM6DSO32/blob/main/resources/outputUsingCompression.jpg">
 

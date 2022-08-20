@@ -22,7 +22,7 @@
 /* Usage */
 #define CS_pin 10
 SPISettings settings = SPISettings(4000000, MSBFIRST, SPI_MODE2);
-LSM6DS032 LSM(CS_pin, SPI, settings); // spi protocol constructor
+LSM6DS032 LSM(CS_pin, SPI, 4000000); // spi protocol constructor
 //LSM6DS032 LSM(&Wire, 1000000); // i2c protocol constructor
 // TODO: I2C isn't working at the moment?
 
