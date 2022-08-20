@@ -658,19 +658,19 @@ uint8_t LSM6DS032::fifo_pop(Fifo<Vector<double, 4>> &acc_fifo, Fifo<Vector<doubl
             // 2xC, low compression; diff(i - 2), diff(i - 1) - application note (page 108)
             // data(i) = diff(i) + data(i-1)
 
-            // 8 bit signed data - See application note Table 88 (page 109)
+            // 8-bit signed data - See application note Table 88 (page 109)
             Vector<double, 4> v3 = acc_fifo.peekFront(); // data(i-3)
 
             // data(i - 2)
-            double datax2 = (data[1] * accel_conversion_factor) + v3[0]; // data(i - 2) = diff(i - 2) + data(i - 3)
-            double datay2 = (data[2] * accel_conversion_factor) + v3[1]; // data(i - 2) = diff(i - 2) + data(i - 3)
-            double dataz2 = (data[3] * accel_conversion_factor) + v3[2]; // data(i - 2) = diff(i - 2) + data(i - 3)
+            double datax2 = ((int8_t)data[1] * accel_conversion_factor) + v3[0]; // data(i - 2) = diff(i - 2) + data(i - 3)
+            double datay2 = ((int8_t)data[2] * accel_conversion_factor) + v3[1]; // data(i - 2) = diff(i - 2) + data(i - 3)
+            double dataz2 = ((int8_t)data[3] * accel_conversion_factor) + v3[2]; // data(i - 2) = diff(i - 2) + data(i - 3)
             double t2 = static_cast<double>(timestamp_lsb - get_timestamp_increment()*2); // data(i-2)
 
             // data(i - 1)
-            double datax1 = (data[4] * accel_conversion_factor) + datax2; // data(i - 1) = diff(i - 1) + data(i - 2)
-            double datay1 = (data[5] * accel_conversion_factor) + datay2; // data(i - 1) = diff(i - 1) + data(i - 2)
-            double dataz1 = (data[6] * accel_conversion_factor) + dataz2; // data(i - 1) = diff(i - 1) + data(i - 2)
+            double datax1 = ((int8_t)data[4] * accel_conversion_factor) + datax2; // data(i - 1) = diff(i - 1) + data(i - 2)
+            double datay1 = ((int8_t)data[5] * accel_conversion_factor) + datay2; // data(i - 1) = diff(i - 1) + data(i - 2)
+            double dataz1 = ((int8_t)data[6] * accel_conversion_factor) + dataz2; // data(i - 1) = diff(i - 1) + data(i - 2)
             double t1 = static_cast<double>(timestamp_lsb - get_timestamp_increment()*1); // data(i-1)
 
             acc_fifo.push(Vector<double, 4> {datax2, datay2, dataz2, t2});

@@ -1,5 +1,5 @@
 # Arduino-LSM6DSO32
-Arduino library for the LSM6DSO32 inertial module https://www.st.com/en/mems-and-sensors/lsm6dso32.html
+An Arduino library for the [LSM6DSO32](https://www.st.com/en/mems-and-sensors/lsm6dso32.html) inertial module.
 
 
 # Usage
@@ -35,19 +35,16 @@ Note that ACC FIFO and GYRO FIFO are FIFOs of _type_ `Vector<double, 4>`, so the
 ```mermaid
 graph TD;
     rawData[Raw Sensor Data]-- Continuously Streaming ---lsmFifo[LSM FIFO];
-    lsmFifo--> accFifo[ACC FIFO] & gyroFifo[GYRO FIFO];
+    lsmFifo--> accFifo[ACC Fifo] & gyroFifo[GYRO Fifo]
    
 ```
 
 
 # Compression
-This library correctly implements the built in compression algorithm in the LSM6DSO32 FIFO. In my testing however, the device does not always perform optimally while the onboard compression algorithm is active:
+This library correctly implements the built-in compression algorithm in the LSM6DSO32 FIFO.
+Note that while the onboard compression is active, the device can occasionally output Zero for all axis: - I am investigating this (check tag parity?)
 
 
-Example: the device outputs 0 on all accelerometer axis while the device is at rest on a desk. This **never** happens using uncompressed data + FIFO.
+Example: the device randomly outputs 0 on all accelerometer axis while the device is at rest on a desk. This **never** happens using uncompressed data + FIFO.
 <img src="https://github.com/TeamSunride/Arduino-LSM6DSO32/blob/main/resources/Screenshot%202022-08-19%20180214.jpg">
 
-Example: the device outputs very sharp acceleration values on *all* axis when the device is plonked onto the table. This is not how the device behaves when using uncompressed data.
-<img src = "https://github.com/TeamSunride/Arduino-LSM6DSO32/blob/main/resources/Screenshot%202022-08-19%20181016.jpg">
-
-I am actively investigating these issues - there's a chance there's a bug in my code I'm not seeing.

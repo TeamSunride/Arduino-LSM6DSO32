@@ -59,6 +59,7 @@ void loop() {
     for (int i=0;i<num_acc;i++) {
         acc = accFifo.pop();
         if (Serial) Serial.printf("%lf, %lf, %lf\n", acc[0], acc[1], acc[2]);
+        if (acc[0] + acc[1] + acc[2] == 0) Serial.printf("------------------------------------------------ZERO-------------------------------------------------\n");
     }
 
 
