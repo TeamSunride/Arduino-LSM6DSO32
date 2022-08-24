@@ -79,7 +79,10 @@ uint8_t LSM6DSO32::set_fifo_watermark(short waterMarkBytes) { /// max watermark 
         Watermark flag rises when the number of bytes written in the FIFO is greater than or
         equal to the threshold level.
      */
-    // TODO: range checks on watermarkBytes
+    // Range checks
+    (waterMarkBytes < 0) ? waterMarkBytes = 0 : 0;
+    (waterMarkBytes > 511) ? waterMarkBytes = 511 : 0;
+
     uint8_t a = device->write_reg(LSM6DSO32_REGISTER::FIFO_CTRL1, (byte)(waterMarkBytes&0xFF)); // WTM0-7
     uint8_t b = device->write_reg(LSM6DSO32_REGISTER::FIFO_CTRL2, (byte)((waterMarkBytes>>8)&0x01)); // first bit of FIFO_CTRL2 is WTM8
     return (a | b); // if either writes fail, return true (1 means failure, 0 means success).
@@ -448,7 +451,7 @@ Vector<double, 3> LSM6DSO32::get_accel() {
     return returnVect;
 }
 
-uint32_t LSM6DSO32::get_timestamp() {
+uint32_t LSM6DSO32::get_timestamp() { // 25us per LSB
     byte data[4] = {};
     device->read_regs(LSM6DSO32_REGISTER::TIMESTAMP0, data, 4);
     return (uint32_t)((data[3]<<24) | (data[2]<<16) | (data[1]<<8) | data[0]);
@@ -572,8 +575,8 @@ uint8_t LSM6DSO32::fifo_pop(Fifo<Vector<double, 4>> &acc_fifo, Fifo<Vector<doubl
         Serial.printf("Tag parity error: %d\n", getNumOnes(data[0]));
     }
 
-
-    if (Serial)Serial.printf("Tag: 0X%X\n", tag);
+    // uncomment to get the tag number (hex)
+    //if (Serial)Serial.printf("Tag: 0X%X\n", tag);
     //if (Serial)Serial.printf("Tag Counter: %d\n", tag_cnt);
     int i=0;
     while ((((prev_tag_cnt+i)%4) != tag_cnt)) { i++; }
@@ -849,6 +852,7 @@ uint8_t LSM6DSO32::default_configuration() {
     stop_on_WTM(false);
     /// FIFO compression
     set_uncompressed_data_rate(UNCOMPRESSED_DATA_BATCHING_RATES::UNCOPTR_8);
+
     /*
      * Accelerometer and gyroscope batch data rate (BDR) can be configured independently, but the compression
        algorithm is not supported in following configurations:
@@ -860,7 +864,7 @@ uint8_t LSM6DSO32::default_configuration() {
     enable_fifo_compression_runtime(true);
 
     /// BATCHING DATA RATES
-    set_batching_data_rates(BATCHING_DATA_RATES::BDR_208Hz, BATCHING_DATA_RATES::NO_BATCHING); // accel, gyro
+    set_batching_data_rates(BATCHING_DATA_RATES::BDR_208Hz, BATCHING_DATA_RATES::BDR_208Hz); // accel, gyro
     set_timestamp_batching_decimation(TIMESTAMP_BATCHING_DECIMATION::DECIMATION_8); // timestamp decimation
 
     /// FIFO MODE
@@ -890,8 +894,8 @@ uint8_t LSM6DSO32::default_configuration() {
 
 
     enable_gyro_high_performance_mode(true);
-    gyro_LPF1_bandwidth(0b111);
     enable_gyro_high_pass_filter(true);
+    gyro_LPF1_bandwidth(0b111);
     set_gyro_high_pass_filter_cutoff(GYRO_HIGH_PASS_FILTER_CUTOFF::GYRO_HPFC_16_MHZ);
 
     enable_LPF2(true);

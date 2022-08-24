@@ -1,0 +1,18 @@
+{
+  "name": "Arduino-LSM6DSO32",
+  "version": "1.0.0",
+  "description": "PlatformIO / Arduino library designed to make it easy to use advanced features of the Bosch BNO055 IMU.",
+  "keywords": "arduino, sensor, LSM6DSO32, adafruit, interrupt, IMU",
+  "repository":
+  {
+    "type": "git",
+    "url": "https://github.com/TeamSunride/Arduino-LSM6DSO32.git"
+  },
+  "authors":
+  [
+    {
+      "name": "Samuel Scott",
+      "maintainer": true
+    }
+  ]
+}

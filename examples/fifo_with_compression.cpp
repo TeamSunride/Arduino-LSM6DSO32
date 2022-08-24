@@ -1,21 +1,6 @@
 #include <Arduino.h>
 #include "LSM6DSO32.h"
 
-
-// TODO: README - photos etc
-// TODO: examples folder
-
-
-//#define DEBUG Serial.printf("We got here: %s  Line:%d\n", __FILE__, __LINE__)
-
-/*
- * Datasheet: https://www.st.com/resource/en/datasheet/lsm6dso32.pdf
- *
- * Datasheet on the finite state machine: https://www.st.com/resource/en/application_note/an5505-lsm6dso32-finite-state-machine-stmicroelectronics.pdf
- *
- * Application note: https://www.st.com/resource/en/application_note/dm00517282-lsm6dso-alwayson-3d-accelerometer-and-3d-gyroscope-stmicroelectronics.pdf
-*/
-
 /* Usage */
 #define CS_pin 10
 SPISettings settings = SPISettings(4000000, MSBFIRST, SPI_MODE2);
@@ -64,4 +49,3 @@ void loop() {
 
     delayMicroseconds(5000-(micros()-start)); // wait a bit
 }
-

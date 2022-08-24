@@ -229,7 +229,7 @@ public:
     uint8_t accel_high_pass_selection(bool select);
     /// LOW_PASS_ON_6D: omit?
 
-    // TODO: WHAT IS DATA ENABLE (DEN) ?? - CTRL9_XL
+    // TODO: WHAT IS DATA ENABLE (DEN) ?? - CTRL9_XL - see Application note 4.8
     uint8_t timestamp_counter_enable(bool enable);
     /// ALL_INT_SRC
     /// WAKE_UP_SRC
