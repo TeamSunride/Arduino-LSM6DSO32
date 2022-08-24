@@ -1,11 +1,11 @@
 //
 // Created by robosam2003 on 23/06/2022.
 //
-#include "LSM6DS032.h"
+#include "LSM6DSO32.h"
 
 /// Constructors
-LSM6DS032::LSM6DS032(TwoWire *pipe, uint32_t freq) { // constructor for I2C protocol
-    device = new I2CProtocol(LSM6DS032_DEFAULT_I2C_ADDRESS, pipe, freq);
+LSM6DSO32::LSM6DSO32(TwoWire *pipe, uint32_t freq) { // constructor for I2C protocol
+    device = new I2CProtocol(LSM6DSO32_DEFAULT_I2C_ADDRESS, pipe, freq);
     accel_conversion_factor = 0.0098*0.978; /// Defaults to +- 32g sensitivity
     gyro_conversion_factor = 0.07; /// defaults to +- 2000dps
     enable_sdo_pullup(true); // pullup for i2c SDA/SDO line - probably best to use external ones as well though
@@ -18,7 +18,7 @@ LSM6DS032::LSM6DS032(TwoWire *pipe, uint32_t freq) { // constructor for I2C prot
 
 }
 
-LSM6DS032::LSM6DS032(byte chipSelect, SPIClass& spi, uint freq) { // constructor for SPI protocol
+LSM6DSO32::LSM6DSO32(byte chipSelect, SPIClass& spi, uint freq) { // constructor for SPI protocol
 
     SPISettings settings = SPISettings(4000000, MSBFIRST, SPI_MODE2);
     device = new SPIProtocol(chipSelect, spi, settings, READ_BYTE, WRITE_BYTE);
@@ -34,78 +34,78 @@ LSM6DS032::LSM6DS032(byte chipSelect, SPIClass& spi, uint freq) { // constructor
 
 // Cheers GitHub copilot ;)
 
-byte LSM6DS032::read_reg(LSM6DS032_REGISTER regAddress) {
+byte LSM6DSO32::read_reg(LSM6DSO32_REGISTER regAddress) {
     return device->read_reg(regAddress);
 }
 
-void LSM6DS032::read_regs(LSM6DS032_REGISTER regAddress, byte *outputPointer, uint length) {
+void LSM6DSO32::read_regs(LSM6DSO32_REGISTER regAddress, byte *outputPointer, uint length) {
     return device->read_regs(regAddress, outputPointer, length);
 }
 
-uint8_t LSM6DS032::write_reg(LSM6DS032_REGISTER regAddress, byte data) {
+uint8_t LSM6DSO32::write_reg(LSM6DSO32_REGISTER regAddress, byte data) {
     return device->write_reg(regAddress, data);
 }
 
-uint8_t LSM6DS032::write_regs(LSM6DS032_REGISTER regAddress, byte *data, uint length) {
+uint8_t LSM6DSO32::write_regs(LSM6DSO32_REGISTER regAddress, byte *data, uint length) {
     return device->write_regs(regAddress, data, length);
 }
 
 
 
-uint8_t LSM6DS032::enable_embedded_functions(bool enable) {
-    byte data= device->read_reg(LSM6DS032_REGISTER::FUNC_CFG_ADDRESS);
+uint8_t LSM6DSO32::enable_embedded_functions(bool enable) {
+    byte data= device->read_reg(LSM6DSO32_REGISTER::FUNC_CFG_ADDRESS);
     data= data& 0b11000000; // last 6 bits ' must be set to '0' for the correct operation of the device. ' according to the datasheet
     setBit(&data, 7, enable);
-    return device->write_reg(LSM6DS032_REGISTER::FUNC_CFG_ADDRESS, data);
+    return device->write_reg(LSM6DSO32_REGISTER::FUNC_CFG_ADDRESS, data);
 }
 
-uint8_t LSM6DS032::enable_sensor_hub(bool enable) {
-    byte data = device->read_reg(LSM6DS032_REGISTER::FUNC_CFG_ADDRESS);
+uint8_t LSM6DSO32::enable_sensor_hub(bool enable) {
+    byte data = device->read_reg(LSM6DSO32_REGISTER::FUNC_CFG_ADDRESS);
     data = data & 0b11000000; // last 6 bits ' must be set to '0' for the correct operation of the device. ' according to the datasheet
     setBit(&data, 6, enable);
-    return device->write_reg(LSM6DS032_REGISTER::FUNC_CFG_ADDRESS, data);
+    return device->write_reg(LSM6DSO32_REGISTER::FUNC_CFG_ADDRESS, data);
 }
 
-uint8_t LSM6DS032::enable_sdo_pullup(bool enable) {
-    byte data = device->read_reg(LSM6DS032_REGISTER::PIN_CTRL);
+uint8_t LSM6DSO32::enable_sdo_pullup(bool enable) {
+    byte data = device->read_reg(LSM6DSO32_REGISTER::PIN_CTRL);
     setBit(&data, 7, 0);  data = data & 0b11000000; // essential for operation of the device
     setBit(&data, 6, enable);
-    return device->write_reg(LSM6DS032_REGISTER::PIN_CTRL, data);
+    return device->write_reg(LSM6DSO32_REGISTER::PIN_CTRL, data);
 }
 
-uint8_t LSM6DS032::set_fifo_watermark(short waterMarkBytes) { /// max watermark 511 (9 bits)
+uint8_t LSM6DSO32::set_fifo_watermark(short waterMarkBytes) { /// max watermark 511 (9 bits)
     /* FIFO watermark threshold
         1 LSB = 1 sensor (6 bytes) + TAG (1 byte) written in FIFO
         Watermark flag rises when the number of bytes written in the FIFO is greater than or
         equal to the threshold level.
      */
     // TODO: range checks on watermarkBytes
-    uint8_t a = device->write_reg(LSM6DS032_REGISTER::FIFO_CTRL1, (byte)(waterMarkBytes&0xFF)); // WTM0-7
-    uint8_t b = device->write_reg(LSM6DS032_REGISTER::FIFO_CTRL2, (byte)((waterMarkBytes>>8)&0x01)); // first bit of FIFO_CTRL2 is WTM8
+    uint8_t a = device->write_reg(LSM6DSO32_REGISTER::FIFO_CTRL1, (byte)(waterMarkBytes&0xFF)); // WTM0-7
+    uint8_t b = device->write_reg(LSM6DSO32_REGISTER::FIFO_CTRL2, (byte)((waterMarkBytes>>8)&0x01)); // first bit of FIFO_CTRL2 is WTM8
     return (a | b); // if either writes fail, return true (1 means failure, 0 means success).
 }
 
-short LSM6DS032::get_fifo_watermark() {
-    return (short)(device->read_reg(LSM6DS032_REGISTER::FIFO_CTRL1) | (((device->read_reg(LSM6DS032_REGISTER::FIFO_CTRL2))&0x01)<<8));
+short LSM6DSO32::get_fifo_watermark() {
+    return (short)(device->read_reg(LSM6DSO32_REGISTER::FIFO_CTRL1) | (((device->read_reg(LSM6DSO32_REGISTER::FIFO_CTRL2))&0x01)<<8));
 }
 
-uint8_t LSM6DS032::stop_on_WTM(bool enable) {
-    byte data = device->read_reg(LSM6DS032_REGISTER::FIFO_CTRL2);
+uint8_t LSM6DSO32::stop_on_WTM(bool enable) {
+    byte data = device->read_reg(LSM6DSO32_REGISTER::FIFO_CTRL2);
     data = data & 0b11010111; // bits 3 and 5 must be zero.
     setBit(&data, 7, enable);
-    return device->write_reg(LSM6DS032_REGISTER::FIFO_CTRL2, data);
+    return device->write_reg(LSM6DSO32_REGISTER::FIFO_CTRL2, data);
 }
 
-uint8_t LSM6DS032::enable_fifo_compression_runtime(bool enable) { // for enabling/disabling fifo compression at runtime
+uint8_t LSM6DSO32::enable_fifo_compression_runtime(bool enable) { // for enabling/disabling fifo compression at runtime
     // warning: does not check if FIFO_COMP_EN is set in EMB_FUNC_EN_B register.
     //          if FIFO_COMP_EN is not set, then the FIFO compression will not be enabled.
-    byte data = device->read_reg(LSM6DS032_REGISTER::FIFO_CTRL2);
+    byte data = device->read_reg(LSM6DSO32_REGISTER::FIFO_CTRL2);
     data = data & 0b11010111; // bits 3 and 5 must be zero.
     setBit(&data, 6, enable);
-    return device->write_reg(LSM6DS032_REGISTER::FIFO_CTRL2, data);
+    return device->write_reg(LSM6DSO32_REGISTER::FIFO_CTRL2, data);
 }
 
-uint8_t LSM6DS032::enable_fifo_compression(bool enable) {
+uint8_t LSM6DSO32::enable_fifo_compression(bool enable) {
     /*
      * Accelerometer and gyroscope batch data rate (BDR) can be configured independently, but the compression
        algorithm is not supported in following configurations:
@@ -113,107 +113,107 @@ uint8_t LSM6DS032::enable_fifo_compression(bool enable) {
        2. Accelerometer only or gyroscope only is batched in FIFO and max(ODR_XL, ODR_G) ≥ 3.33 kHz.
      */
     enable_embedded_functions(true);
-    byte data = device->read_reg(LSM6DS032_EMBEDDED_REGISTER::EMB_FUNC_EN_B);
+    byte data = device->read_reg(LSM6DSO32_EMBEDDED_REGISTER::EMB_FUNC_EN_B);
     setBit(&data, 3, enable);
-    uint8_t stat = device->write_reg(LSM6DS032_EMBEDDED_REGISTER::EMB_FUNC_EN_B, data);
+    uint8_t stat = device->write_reg(LSM6DSO32_EMBEDDED_REGISTER::EMB_FUNC_EN_B, data);
     enable_embedded_functions(false);
     return stat;
 }
 
 
-uint8_t LSM6DS032::set_uncompressed_data_rate(UNCOMPRESSED_DATA_BATCHING_RATES rate) {
-    byte data = device->read_reg(LSM6DS032_REGISTER::FIFO_CTRL2);
+uint8_t LSM6DSO32::set_uncompressed_data_rate(UNCOMPRESSED_DATA_BATCHING_RATES rate) {
+    byte data = device->read_reg(LSM6DSO32_REGISTER::FIFO_CTRL2);
     data = data & 0b11010001;
     data = (rate<<1) | data;
-    return device->write_reg(LSM6DS032_REGISTER::FIFO_CTRL2, data);
+    return device->write_reg(LSM6DSO32_REGISTER::FIFO_CTRL2, data);
 }
 
 // The batching data rate is the writing frequency to the fifo
-uint8_t LSM6DS032::set_batching_data_rates(BATCHING_DATA_RATES accel_BDR, BATCHING_DATA_RATES gyro_BDR) { // accel and gyro not batched in fifo by default
+uint8_t LSM6DSO32::set_batching_data_rates(BATCHING_DATA_RATES accel_BDR, BATCHING_DATA_RATES gyro_BDR) { // accel and gyro not batched in fifo by default
     XL_BDR = accel_BDR;
     GY_BDR = gyro_BDR;
-    return device->write_reg(LSM6DS032_REGISTER::FIFO_CTRL3, ((gyro_BDR<<4) | accel_BDR));
+    return device->write_reg(LSM6DSO32_REGISTER::FIFO_CTRL3, ((gyro_BDR<<4) | accel_BDR));
 }
 
-uint8_t LSM6DS032::set_timestamp_batching_decimation(TIMESTAMP_BATCHING_DECIMATION decimation) {
+uint8_t LSM6DSO32::set_timestamp_batching_decimation(TIMESTAMP_BATCHING_DECIMATION decimation) {
     /** Selects decimation for timestamp batching in FIFO. Writing rate will be the maximum
         rate between XL and GYRO BDR divided by decimation decoder.*/
-    byte data = device->read_reg(LSM6DS032_REGISTER::FIFO_CTRL4);
+    byte data = device->read_reg(LSM6DSO32_REGISTER::FIFO_CTRL4);
     data = data & 0b00110111; // bit 3 must be 0, clear top two bits ready for decimation write
     data = (decimation<<6) | data;
-    return device->write_reg(LSM6DS032_REGISTER::FIFO_CTRL4, data);
+    return device->write_reg(LSM6DSO32_REGISTER::FIFO_CTRL4, data);
 }
 
-uint8_t LSM6DS032::set_temperature_batching_data_rate(TEMPERATURE_BATCHING_RATE rate) {
-    byte data = device->read_reg(LSM6DS032_REGISTER::FIFO_CTRL4);
+uint8_t LSM6DSO32::set_temperature_batching_data_rate(TEMPERATURE_BATCHING_RATE rate) {
+    byte data = device->read_reg(LSM6DSO32_REGISTER::FIFO_CTRL4);
     data = data & 0b11000111; // bit 3 must be 0, clear bits 4 and 5 ready for temperature rate write
     data = (rate<<4) | data;
-    return device->write_reg(LSM6DS032_REGISTER::FIFO_CTRL4, data);
+    return device->write_reg(LSM6DSO32_REGISTER::FIFO_CTRL4, data);
 }
 
-uint8_t LSM6DS032::set_fifo_mode(FIFO_MODES mode) { //
-    byte data = device->read_reg(LSM6DS032_REGISTER::FIFO_CTRL4);
+uint8_t LSM6DSO32::set_fifo_mode(FIFO_MODES mode) { //
+    byte data = device->read_reg(LSM6DSO32_REGISTER::FIFO_CTRL4);
     data = data & 0b11110000; // bit 3 must be zero, clear bottom 3 bits
     data = mode | data;
-    return device->write_reg(LSM6DS032_REGISTER::FIFO_CTRL4, data);
+    return device->write_reg(LSM6DSO32_REGISTER::FIFO_CTRL4, data);
 }
 
-uint8_t LSM6DS032::reset_counter_bdr() {
-    byte data = device->read_reg(LSM6DS032_REGISTER::COUNTER_BDR_REG1);
+uint8_t LSM6DSO32::reset_counter_bdr() {
+    byte data = device->read_reg(LSM6DSO32_REGISTER::COUNTER_BDR_REG1);
     setBit(&data, 6, 1);
-    return device->write_reg(LSM6DS032_REGISTER::COUNTER_BDR_REG1, data);
+    return device->write_reg(LSM6DSO32_REGISTER::COUNTER_BDR_REG1, data);
 }
 
-uint8_t LSM6DS032::set_gyro_as_batch_count_trigger(bool enable) {
-    byte data = device->read_reg(LSM6DS032_REGISTER::COUNTER_BDR_REG1);
+uint8_t LSM6DSO32::set_gyro_as_batch_count_trigger(bool enable) {
+    byte data = device->read_reg(LSM6DSO32_REGISTER::COUNTER_BDR_REG1);
     setBit(&data, 5, enable);
-    return device->write_reg(LSM6DS032_REGISTER::COUNTER_BDR_REG1, data);
+    return device->write_reg(LSM6DSO32_REGISTER::COUNTER_BDR_REG1, data);
 }
 
-uint8_t LSM6DS032::set_BDR_counter_threshold(short threshold) {
-    byte highByte = device->read_reg(LSM6DS032_REGISTER::COUNTER_BDR_REG1);
+uint8_t LSM6DSO32::set_BDR_counter_threshold(short threshold) {
+    byte highByte = device->read_reg(LSM6DSO32_REGISTER::COUNTER_BDR_REG1);
     highByte = highByte & 0b11100000; // 3 and 4 must be 0, clear lower 3 bits
     highByte &= (byte)(threshold>>8);
-    return (device->write_reg(LSM6DS032_REGISTER::COUNTER_BDR_REG1, highByte) | device->write_reg(LSM6DS032_REGISTER::COUNTER_BDR_REG2, (byte)(threshold&0xFF)));
+    return (device->write_reg(LSM6DSO32_REGISTER::COUNTER_BDR_REG1, highByte) | device->write_reg(LSM6DSO32_REGISTER::COUNTER_BDR_REG2, (byte)(threshold&0xFF)));
 }
 
-short LSM6DS032::get_BDR_counter_threshold() {
-    return (short)(((device->read_reg(LSM6DS032_REGISTER::COUNTER_BDR_REG1)&0b00000111))<<8 | device->read_reg(LSM6DS032_REGISTER::COUNTER_BDR_REG2) );
+short LSM6DSO32::get_BDR_counter_threshold() {
+    return (short)(((device->read_reg(LSM6DSO32_REGISTER::COUNTER_BDR_REG1)&0b00000111))<<8 | device->read_reg(LSM6DSO32_REGISTER::COUNTER_BDR_REG2) );
 }
 
-uint8_t LSM6DS032::set_INT1_INTERRUPT(INTERRUPTS interrupt, bool enable) {
-    byte data = device->read_reg(LSM6DS032_REGISTER::INT1_CTRL);
+uint8_t LSM6DSO32::set_INT1_INTERRUPT(INTERRUPTS interrupt, bool enable) {
+    byte data = device->read_reg(LSM6DSO32_REGISTER::INT1_CTRL);
     setBit(&data, interrupt, enable);
-    return device->write_reg(LSM6DS032_REGISTER::INT1_CTRL, data);
+    return device->write_reg(LSM6DSO32_REGISTER::INT1_CTRL, data);
 }
 
-uint8_t LSM6DS032::set_INT2_INTERRUPT(INTERRUPTS interrupt, bool enable) {
-    byte data = device->read_reg(LSM6DS032_REGISTER::INT2_CTRL);
+uint8_t LSM6DSO32::set_INT2_INTERRUPT(INTERRUPTS interrupt, bool enable) {
+    byte data = device->read_reg(LSM6DSO32_REGISTER::INT2_CTRL);
     setBit(&data, interrupt, enable);
-    return device->write_reg(LSM6DS032_REGISTER::INT2_CTRL, data);
+    return device->write_reg(LSM6DSO32_REGISTER::INT2_CTRL, data);
 }
 
-uint8_t LSM6DS032::set_dataready_pulsed(bool enable) {
-    byte data = device->read_reg(LSM6DS032_REGISTER::COUNTER_BDR_REG1);
+uint8_t LSM6DSO32::set_dataready_pulsed(bool enable) {
+    byte data = device->read_reg(LSM6DSO32_REGISTER::COUNTER_BDR_REG1);
     data = data & 0b01100111; // bits 3 and 4 must be zero, clear bit 7
     setBit(&data, 7, enable);
-    return device->write_reg(LSM6DS032_REGISTER::COUNTER_BDR_REG1, data);
+    return device->write_reg(LSM6DSO32_REGISTER::COUNTER_BDR_REG1, data);
 }
 
 
 
-byte LSM6DS032::who_am_i() {
-    return device->read_reg(LSM6DS032_REGISTER::WHO_AM_I);
+byte LSM6DSO32::who_am_i() {
+    return device->read_reg(LSM6DSO32_REGISTER::WHO_AM_I);
 }
 
-uint8_t LSM6DS032::set_accel_ODR(OUTPUT_DATA_RATES rate) {
-    byte data = device->read_reg(LSM6DS032_REGISTER::CTRL1_XL);
+uint8_t LSM6DSO32::set_accel_ODR(OUTPUT_DATA_RATES rate) {
+    byte data = device->read_reg(LSM6DSO32_REGISTER::CTRL1_XL);
     data = data & 0b00001110; // bit 0 must be 0
     data = (rate<<4) | data;
-    return device->write_reg(LSM6DS032_REGISTER::CTRL1_XL, data);
+    return device->write_reg(LSM6DSO32_REGISTER::CTRL1_XL, data);
 }
 
-uint8_t LSM6DS032::set_accel_full_scale(ACCEL_FULL_SCALE scale) {
+uint8_t LSM6DSO32::set_accel_full_scale(ACCEL_FULL_SCALE scale) {
 
     switch (scale) {
         case (ACCEL_FULL_SCALE::ACCEL_SCALE_4G): {
@@ -237,20 +237,20 @@ uint8_t LSM6DS032::set_accel_full_scale(ACCEL_FULL_SCALE scale) {
             break;
         }
     }
-    byte data = device->read_reg(LSM6DS032_REGISTER::CTRL1_XL);
+    byte data = device->read_reg(LSM6DSO32_REGISTER::CTRL1_XL);
     data = data & 0b11110010;
     data = (scale<<2) | data;
-    return device->write_reg(LSM6DS032_REGISTER::CTRL1_XL, data);
+    return device->write_reg(LSM6DSO32_REGISTER::CTRL1_XL, data);
 }
 
-uint8_t LSM6DS032::set_gyro_ODR(OUTPUT_DATA_RATES rate) {
-    byte data = device->read_reg(LSM6DS032_REGISTER::CTRL2_G);
+uint8_t LSM6DSO32::set_gyro_ODR(OUTPUT_DATA_RATES rate) {
+    byte data = device->read_reg(LSM6DSO32_REGISTER::CTRL2_G);
     data = data & 0b00001100; // bit 0 must be 0
     data = (rate<<4) | data;
-    return device->write_reg(LSM6DS032_REGISTER::CTRL2_G, data);
+    return device->write_reg(LSM6DSO32_REGISTER::CTRL2_G, data);
 }
 
-uint8_t LSM6DS032::set_gyro_full_scale(GYRO_FULL_SCALE scale) {
+uint8_t LSM6DSO32::set_gyro_full_scale(GYRO_FULL_SCALE scale) {
     switch (scale) { // The 125dps option is not available because that is selected via a different register
         case (GYRO_FULL_SCALE::GYRO_SCALE_250DPS) : {
             gyro_conversion_factor=0.001*8.75;
@@ -275,162 +275,162 @@ uint8_t LSM6DS032::set_gyro_full_scale(GYRO_FULL_SCALE scale) {
 
     }
 
-    byte data = device->read_reg(LSM6DS032_REGISTER::CTRL2_G);
+    byte data = device->read_reg(LSM6DSO32_REGISTER::CTRL2_G);
     data = data & 0b11110000; // bit 1 should be zero also, because we don't just want 125 dps.
     data = (scale<<2) | data;
-    return device->write_reg(LSM6DS032_REGISTER::CTRL2_G, data);
+    return device->write_reg(LSM6DSO32_REGISTER::CTRL2_G, data);
 }
 
-uint8_t LSM6DS032::enable_LPF2(bool enable) {
-    byte data = device->read_reg(LSM6DS032_REGISTER::CTRL1_XL);
+uint8_t LSM6DSO32::enable_LPF2(bool enable) {
+    byte data = device->read_reg(LSM6DSO32_REGISTER::CTRL1_XL);
     setBit(&data, 1, enable);
-    return device->write_reg(LSM6DS032_REGISTER::CTRL1_XL, data);
+    return device->write_reg(LSM6DSO32_REGISTER::CTRL1_XL, data);
 }
 
-uint8_t LSM6DS032::set_interrupts_active_low(bool enable) {
-    byte data = device->read_reg(LSM6DS032_REGISTER::CTRL3_C);
+uint8_t LSM6DSO32::set_interrupts_active_low(bool enable) {
+    byte data = device->read_reg(LSM6DSO32_REGISTER::CTRL3_C);
     setBit(&data, 5, enable);
-    return device->write_reg(LSM6DS032_REGISTER::CTRL3_C, data);
+    return device->write_reg(LSM6DSO32_REGISTER::CTRL3_C, data);
 }
 
-uint8_t LSM6DS032::set_SPI_as_3_wire(bool enable) {
-    byte data = device->read_reg(LSM6DS032_REGISTER::CTRL3_C);
+uint8_t LSM6DSO32::set_SPI_as_3_wire(bool enable) {
+    byte data = device->read_reg(LSM6DSO32_REGISTER::CTRL3_C);
     setBit(&data, 3, enable);
-    return device->write_reg(LSM6DS032_REGISTER::CTRL3_C, data);
+    return device->write_reg(LSM6DSO32_REGISTER::CTRL3_C, data);
 }
 
-uint8_t LSM6DS032::enable_auto_address_increment(bool enable) {
-    byte data = device->read_reg(LSM6DS032_REGISTER::CTRL3_C);
+uint8_t LSM6DSO32::enable_auto_address_increment(bool enable) {
+    byte data = device->read_reg(LSM6DSO32_REGISTER::CTRL3_C);
     setBit(&data, 2, enable);
-    return device->write_reg(LSM6DS032_REGISTER::CTRL3_C, data);
+    return device->write_reg(LSM6DSO32_REGISTER::CTRL3_C, data);
 }
 
-uint8_t LSM6DS032::software_reset() {
-    byte data = device->read_reg(LSM6DS032_REGISTER::CTRL3_C);
+uint8_t LSM6DSO32::software_reset() {
+    byte data = device->read_reg(LSM6DSO32_REGISTER::CTRL3_C);
     setBit(&data, 0, 1);
-    return device->write_reg(LSM6DS032_REGISTER::CTRL3_C, data);
+    return device->write_reg(LSM6DSO32_REGISTER::CTRL3_C, data);
 }
 
-uint8_t LSM6DS032::set_gyroscope_sleep(bool enable) {
-    byte data = device->read_reg(LSM6DS032_REGISTER::CTRL4_C);
+uint8_t LSM6DSO32::set_gyroscope_sleep(bool enable) {
+    byte data = device->read_reg(LSM6DSO32_REGISTER::CTRL4_C);
     setBit(&data, 6, enable);
-    return device->write_reg(LSM6DS032_REGISTER::CTRL4_C, data);
+    return device->write_reg(LSM6DSO32_REGISTER::CTRL4_C, data);
 }
 
-uint8_t LSM6DS032::enable_data_ready_mask(bool enable) {
-    byte data = device->read_reg(LSM6DS032_REGISTER::CTRL4_C);
+uint8_t LSM6DSO32::enable_data_ready_mask(bool enable) {
+    byte data = device->read_reg(LSM6DSO32_REGISTER::CTRL4_C);
     setBit(&data, 3, enable);
-    return device->write_reg(LSM6DS032_REGISTER::CTRL4_C, data);
+    return device->write_reg(LSM6DSO32_REGISTER::CTRL4_C, data);
 }
 
-uint8_t LSM6DS032::enable_i2c_interface(bool enable) {
-    byte data = device->read_reg(LSM6DS032_REGISTER::CTRL4_C);
+uint8_t LSM6DSO32::enable_i2c_interface(bool enable) {
+    byte data = device->read_reg(LSM6DSO32_REGISTER::CTRL4_C);
     setBit(&data, 2, !enable);  // negated because this register actually DISables i2c. - Still using "enable" language for consistency.
-    return device->write_reg(LSM6DS032_REGISTER::CTRL4_C, data);
+    return device->write_reg(LSM6DSO32_REGISTER::CTRL4_C, data);
 }
 
-uint8_t LSM6DS032::enable_gyro_LPF1(bool enable) {
-    byte data = device->read_reg(LSM6DS032_REGISTER::CTRL4_C);
+uint8_t LSM6DSO32::enable_gyro_LPF1(bool enable) {
+    byte data = device->read_reg(LSM6DSO32_REGISTER::CTRL4_C);
     setBit(&data, 1, enable);
-    return device->write_reg(LSM6DS032_REGISTER::CTRL4_C, data);
+    return device->write_reg(LSM6DSO32_REGISTER::CTRL4_C, data);
 }
 
-uint8_t LSM6DS032::enable_accel_ultra_low_power(bool enable) {
-    byte data = device->read_reg(LSM6DS032_REGISTER::CTRL5_C);
+uint8_t LSM6DSO32::enable_accel_ultra_low_power(bool enable) {
+    byte data = device->read_reg(LSM6DSO32_REGISTER::CTRL5_C);
     setBit(&data, 7, enable);
-    return device->write_reg(LSM6DS032_REGISTER::CTRL5_C, data);
+    return device->write_reg(LSM6DSO32_REGISTER::CTRL5_C, data);
 }
 
-uint8_t LSM6DS032::enable_rounding(bool accelEnable, bool gyroEnable) {
-    byte data = device->read_reg(LSM6DS032_REGISTER::CTRL5_C);
+uint8_t LSM6DSO32::enable_rounding(bool accelEnable, bool gyroEnable) {
+    byte data = device->read_reg(LSM6DSO32_REGISTER::CTRL5_C);
     setBit(&data, 5, accelEnable);
     setBit(&data, 6, gyroEnable);
-    return device->write_reg(LSM6DS032_REGISTER::CTRL5_C, data);
+    return device->write_reg(LSM6DSO32_REGISTER::CTRL5_C, data);
 }
 
-uint8_t LSM6DS032::enable_accel_high_performance_mode(bool enable) {
-    byte data = device->read_reg(LSM6DS032_REGISTER::CTRL6_C);
+uint8_t LSM6DSO32::enable_accel_high_performance_mode(bool enable) {
+    byte data = device->read_reg(LSM6DSO32_REGISTER::CTRL6_C);
     setBit(&data, 4, !enable);
-    return device->write_reg(LSM6DS032_REGISTER::CTRL6_C, data);
+    return device->write_reg(LSM6DSO32_REGISTER::CTRL6_C, data);
 }
 
-uint8_t LSM6DS032::gyro_LPF1_bandwidth(byte bandwidth) {
-    byte data = device->read_reg(LSM6DS032_REGISTER::CTRL6_C);
+uint8_t LSM6DSO32::gyro_LPF1_bandwidth(byte bandwidth) {
+    byte data = device->read_reg(LSM6DSO32_REGISTER::CTRL6_C);
     data = data & 0b11111000;
     data = (bandwidth) | data;
-    return device->write_reg(LSM6DS032_REGISTER::CTRL6_C, data);
+    return device->write_reg(LSM6DSO32_REGISTER::CTRL6_C, data);
 }
 
-uint8_t LSM6DS032::enable_gyro_high_performance_mode(bool enable) {
-    byte data = device->read_reg(LSM6DS032_REGISTER::CTRL7_G);
+uint8_t LSM6DSO32::enable_gyro_high_performance_mode(bool enable) {
+    byte data = device->read_reg(LSM6DSO32_REGISTER::CTRL7_G);
     setBit(&data, 7, !enable); // enabled is 0.
-    return device->write_reg(LSM6DS032_REGISTER::CTRL7_G, data);
+    return device->write_reg(LSM6DSO32_REGISTER::CTRL7_G, data);
 }
 
-uint8_t LSM6DS032::enable_gyro_high_pass_filter(bool enable) {
-    byte data = device->read_reg(LSM6DS032_REGISTER::CTRL7_G);
+uint8_t LSM6DSO32::enable_gyro_high_pass_filter(bool enable) {
+    byte data = device->read_reg(LSM6DSO32_REGISTER::CTRL7_G);
     setBit(&data, 6, enable);
-    return device->write_reg(LSM6DS032_REGISTER::CTRL7_G, data);
+    return device->write_reg(LSM6DSO32_REGISTER::CTRL7_G, data);
 }
 
-uint8_t LSM6DS032::set_gyro_high_pass_filter_cutoff(GYRO_HIGH_PASS_FILTER_CUTOFF cutoff) {
-    byte data = device->read_reg(LSM6DS032_REGISTER::CTRL7_G);
+uint8_t LSM6DSO32::set_gyro_high_pass_filter_cutoff(GYRO_HIGH_PASS_FILTER_CUTOFF cutoff) {
+    byte data = device->read_reg(LSM6DSO32_REGISTER::CTRL7_G);
     data = data & 0b11000010;
     data = (cutoff<< 4) | data;
-    return device->write_reg(LSM6DS032_REGISTER::CTRL7_G, data);
+    return device->write_reg(LSM6DSO32_REGISTER::CTRL7_G, data);
 }
 
-uint8_t LSM6DS032::enable_accel_offset_block(bool enable) {
-    byte data = device->read_reg(LSM6DS032_REGISTER::CTRL7_G);
+uint8_t LSM6DSO32::enable_accel_offset_block(bool enable) {
+    byte data = device->read_reg(LSM6DSO32_REGISTER::CTRL7_G);
     setBit(&data, 1, enable);
-    return device->write_reg(LSM6DS032_REGISTER::CTRL7_G, data);
+    return device->write_reg(LSM6DSO32_REGISTER::CTRL7_G, data);
 }
 
-uint8_t LSM6DS032::set_accel_high_pass_or_LPF2_filter_cutoff(ACCEL_HP_OR_LPF2_CUTOFF cutoff) {
-    byte data = device->read_reg(LSM6DS032_REGISTER::CTRL8_XL);
+uint8_t LSM6DSO32::set_accel_high_pass_or_LPF2_filter_cutoff(ACCEL_HP_OR_LPF2_CUTOFF cutoff) {
+    byte data = device->read_reg(LSM6DSO32_REGISTER::CTRL8_XL);
     data = data & 0b00011101;
     data = (cutoff<<5) | data;
-    return device->write_reg(LSM6DS032_REGISTER::CTRL8_XL, data);
+    return device->write_reg(LSM6DSO32_REGISTER::CTRL8_XL, data);
 }
 
-uint8_t LSM6DS032::enable_accel_high_pass_filter_reference_mode(bool enable) {
-    byte data = device->read_reg(LSM6DS032_REGISTER::CTRL8_XL);
+uint8_t LSM6DSO32::enable_accel_high_pass_filter_reference_mode(bool enable) {
+    byte data = device->read_reg(LSM6DSO32_REGISTER::CTRL8_XL);
     setBit(&data, 4, enable);
-    return device->write_reg(LSM6DS032_REGISTER::CTRL8_XL, data);
+    return device->write_reg(LSM6DSO32_REGISTER::CTRL8_XL, data);
 }
 
-uint8_t LSM6DS032::enable_accel_fast_settling_mode(bool enable) {
-    byte data = device->read_reg(LSM6DS032_REGISTER::CTRL8_XL);
+uint8_t LSM6DSO32::enable_accel_fast_settling_mode(bool enable) {
+    byte data = device->read_reg(LSM6DSO32_REGISTER::CTRL8_XL);
     setBit(&data, 3, enable);
-    return device->write_reg(LSM6DS032_REGISTER::CTRL8_XL, data);
+    return device->write_reg(LSM6DSO32_REGISTER::CTRL8_XL, data);
 }
 
-uint8_t LSM6DS032::accel_high_pass_selection(bool select) {
+uint8_t LSM6DSO32::accel_high_pass_selection(bool select) {
     /**
      *  0 for low-pass (LPF2), 1 for high pass
      */
-    byte data = device->read_reg(LSM6DS032_REGISTER::CTRL8_XL);
+    byte data = device->read_reg(LSM6DSO32_REGISTER::CTRL8_XL);
     setBit(&data, 2, select);
-    return device->write_reg(LSM6DS032_REGISTER::CTRL8_XL, data);
+    return device->write_reg(LSM6DSO32_REGISTER::CTRL8_XL, data);
 }
 
-uint8_t LSM6DS032::timestamp_counter_enable(bool enable) {
-    byte data = device->read_reg(LSM6DS032_REGISTER::CTRL10_C);
+uint8_t LSM6DSO32::timestamp_counter_enable(bool enable) {
+    byte data = device->read_reg(LSM6DSO32_REGISTER::CTRL10_C);
     setBit(&data, 5, enable);
-    return device->write_reg(LSM6DS032_REGISTER::CTRL10_C, data);
+    return device->write_reg(LSM6DSO32_REGISTER::CTRL10_C, data);
 }
 
-short LSM6DS032::get_temperature() {
+short LSM6DSO32::get_temperature() {
     byte data[2] = {};
-    device->read_regs(LSM6DS032_REGISTER::OUT_TEMP_L, data, 2);
+    device->read_regs(LSM6DSO32_REGISTER::OUT_TEMP_L, data, 2);
     return (short)((data[1]<<8) | data[0]);
 }
 
 
-Vector<double, 3> LSM6DS032::get_gyro() {
+Vector<double, 3> LSM6DSO32::get_gyro() {
     Vector<double, 3> returnVect = {0, 0, 0};
     byte a[6] = {0};
-    device->read_regs(LSM6DS032_REGISTER::OUTX_L_G, a, 6);
+    device->read_regs(LSM6DSO32_REGISTER::OUTX_L_G, a, 6);
     returnVect[0] = ((short)((a[1]<<8) | a[0])) * gyro_conversion_factor;
     returnVect[1] = ((short)((a[3]<<8) | a[2])) * gyro_conversion_factor;
     returnVect[2] = ((short)((a[5]<<8) | a[4])) * gyro_conversion_factor;
@@ -438,27 +438,27 @@ Vector<double, 3> LSM6DS032::get_gyro() {
 }
 
 
-Vector<double, 3> LSM6DS032::get_accel() {
+Vector<double, 3> LSM6DSO32::get_accel() {
     Vector<double, 3> returnVect = {0, 0, 0};
     byte a[6] = {0};
-    device->read_regs(LSM6DS032_REGISTER::OUTX_L_A, a, 6);
+    device->read_regs(LSM6DSO32_REGISTER::OUTX_L_A, a, 6);
     returnVect[0] = ((short)((a[1]<<8) | a[0])) * accel_conversion_factor;
     returnVect[1] = ((short)((a[3]<<8) | a[2])) * accel_conversion_factor;
     returnVect[2] = ((short)((a[5]<<8) | a[4])) * accel_conversion_factor;
     return returnVect;
 }
 
-uint32_t LSM6DS032::get_timestamp() {
+uint32_t LSM6DSO32::get_timestamp() {
     byte data[4] = {};
-    device->read_regs(LSM6DS032_REGISTER::TIMESTAMP0, data, 4);
+    device->read_regs(LSM6DSO32_REGISTER::TIMESTAMP0, data, 4);
     return (uint32_t)((data[3]<<24) | (data[2]<<16) | (data[1]<<8) | data[0]);
 }
 
 
-LSM_FIFO_STATUS LSM6DS032::get_fifo_status() {
+LSM_FIFO_STATUS LSM6DSO32::get_fifo_status() {
     struct LSM_FIFO_STATUS status = {false,false,false,false,false,0};
     byte a[2] = {};
-    device->read_regs(LSM6DS032_REGISTER::FIFO_STATUS1, a, 2);
+    device->read_regs(LSM6DSO32_REGISTER::FIFO_STATUS1, a, 2);
     status.watermark_flag = getBit(a[1], 7);
     status.overrun_flag = getBit(a[1], 6);
     status.smart_fifo_full_flag = getBit(a[1], 5);
@@ -469,7 +469,7 @@ LSM_FIFO_STATUS LSM6DS032::get_fifo_status() {
     return status;
 }
 
-int LSM6DS032::get_timestamp_increment(){
+int LSM6DSO32::get_timestamp_increment(){
     switch (max(XL_BDR, GY_BDR)) {
         case NO_BATCHING: // should never occur
             break;
@@ -523,12 +523,12 @@ byte getNumOnes(byte data) {
     return numOnes;
 }
 
-void LSM6DS032::fifo_clear() {
+void LSM6DSO32::fifo_clear() {
     LSM_FIFO_STATUS fifo_status = this->get_fifo_status();
     int num_unread = fifo_status.num_fifo_unread;
     byte data[7] = {};
     for (int i=0;i<num_unread;i++) {
-        device->read_regs(LSM6DS032_REGISTER::FIFO_DATA_OUT_TAG, data, 7);
+        device->read_regs(LSM6DSO32_REGISTER::FIFO_DATA_OUT_TAG, data, 7);
     }
 }
 
@@ -543,7 +543,7 @@ int8_t int5_t(int fiveBits){
 
 
 
-uint8_t LSM6DS032::fifo_pop(Fifo<Vector<double, 4>> &acc_fifo, Fifo<Vector<double, 4>> &gyr_fifo) { // three data fields then one timestamp.
+uint8_t LSM6DSO32::fifo_pop(Fifo<Vector<double, 4>> &acc_fifo, Fifo<Vector<double, 4>> &gyr_fifo) { // three data fields then one timestamp.
     /*
      * When FIFO is enabled and the mode is different from Bypass, reading the FIFO output registers return the oldest
        FIFO sample set. Whenever these registers are read, their content is moved to the SPI/I²C/MIPI I3C output
@@ -562,7 +562,7 @@ uint8_t LSM6DS032::fifo_pop(Fifo<Vector<double, 4>> &acc_fifo, Fifo<Vector<doubl
        window of three BDR. - application note  9.10.1
      */
     byte data[7] = {};
-    device->read_regs(LSM6DS032_REGISTER::FIFO_DATA_OUT_TAG, data, 7);
+    device->read_regs(LSM6DSO32_REGISTER::FIFO_DATA_OUT_TAG, data, 7);
     byte tag = data[0] >> 3;
 
     // The tag counter is synchronized with the highest BDR. It is for making sense of the time slot in which compressed sensor data occurred. - See application note 9.4 (page 94)
@@ -843,7 +843,7 @@ uint8_t LSM6DS032::fifo_pop(Fifo<Vector<double, 4>> &acc_fifo, Fifo<Vector<doubl
 
 
 
-uint8_t LSM6DS032::default_configuration() {
+uint8_t LSM6DSO32::default_configuration() {
     software_reset();
     set_fifo_watermark(511);
     stop_on_WTM(false);

@@ -2,12 +2,12 @@
 // Created by robosam2003 on 16/06/2022.
 //
 
-#ifndef LSM6DS032_REGISTERS_H
-#define LSM6DS032_REGISTERS_H
+#ifndef LSM6DSO32_REGISTERS_H
+#define LSM6DSO32_REGISTERS_H
 
 // Dear GitHub copilot: You are truly appreciated. - Yours, Sam.
 
-enum LSM6DS032_REGISTER { // Registers are scoped to avoid confusion with other sensor registers names - Please use the scoping when you can
+enum LSM6DSO32_REGISTER { // Registers are scoped to avoid confusion with other sensor registers names - Please use the scoping when you can
     FUNC_CFG_ADDRESS           =  0x01,    // R/W
     PIN_CTRL                   =  0x02,
     // reserved                 0x03-0x06
@@ -92,10 +92,10 @@ enum LSM6DS032_REGISTER { // Registers are scoped to avoid confusion with other 
 };
 
 
-enum LSM6DS032_EMBEDDED_REGISTER { // only including the ones I need.
+enum LSM6DSO32_EMBEDDED_REGISTER { // only including the ones I need.
     EMB_FUNC_EN_B = 0x05
 };
 
 
 
-#endif //LSM6DS032_REGISTERS_H
+#endif //LSM6DSO32_REGISTERS_H

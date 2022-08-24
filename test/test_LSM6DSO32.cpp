@@ -2,16 +2,13 @@
 // Created by robos on 23/06/2022.
 //
 #include "unity.h"
-#include <Arduino.h>
-#include <SPI.h>
-#include "Wire.h"
-#include "LSM6DS032.h"
+#include "LSM6DSO32.h"
 
 #define CS_pin 10
 #define WHO_AM_I_ID 0x6C
 
 
-LSM6DS032 LSMTest(CS_pin, SPI, 4000000);
+LSM6DSO32 LSMTest(CS_pin, SPI, 4000000);
 
 void setUp(void) {
     // set stuff up here

@@ -1,12 +1,12 @@
 //
 // Created by robosam2003 on 23/06/2022.
 // TeamSunride
-#ifndef ARDUINO_LSM6DS032_LSMDS032_H
-#define ARDUINO_LSM6DS032_LSMDS032_H
+#ifndef ARDUINO_LSM6DSO32_LSM6DSO32_H
+#define ARDUINO_LSM6DSO32_LSM6DSO32_H
 
 #include "protocol.h"
-#include "LSM6DS032_registers.h"
-#include "LSM6DS032_constants.h"
+#include "LSM6DSO32_registers.h"
+#include "LSM6DSO32_constants.h"
 #include "Vector.h"
 #include "dynamicFifo.h" // using dynamically allocated fifo because fifo size is not known at compile time.
 
@@ -44,7 +44,7 @@ struct LSM_FIFO_STATUS {
 };
 
 // The LSM6DSO32 can be used as an I2C or SPI device, use the appropriate constructor for the desired protocol.
-class LSM6DS032{ // This could maybe be a child of the IMU class??
+class LSM6DSO32{ // This could maybe be a child of the IMU class??
 protected:
     protocol* device;
     double accel_conversion_factor;
@@ -65,7 +65,7 @@ public:
      * @param pipe
      * @param freq
      */
-    LSM6DS032(TwoWire *pipe, uint32_t freq);
+    LSM6DSO32(TwoWire *pipe, uint32_t freq);
 
     /**
      * @brief Constructor overload for SPI protocol
@@ -73,7 +73,7 @@ public:
      * @param spi
      * @param settings
      */
-    LSM6DS032(byte chipSelect, SPIClass& spi, uint freq);
+    LSM6DSO32(byte chipSelect, SPIClass& spi, uint freq);
 
     /**
      * @brief begin the device
@@ -84,10 +84,10 @@ public:
     }
 
     // breakout reg functions to LSM class
-    byte read_reg(LSM6DS032_REGISTER regAddress);
-    void read_regs(LSM6DS032_REGISTER regAddress, byte* outputPointer,  uint length);
-    uint8_t write_reg(LSM6DS032_REGISTER regAddress, byte data);
-    uint8_t write_regs(LSM6DS032_REGISTER regAddress ,byte* writeBuffer, uint length);
+    byte read_reg(LSM6DSO32_REGISTER regAddress);
+    void read_regs(LSM6DSO32_REGISTER regAddress, byte* outputPointer,  uint length);
+    uint8_t write_reg(LSM6DSO32_REGISTER regAddress, byte data);
+    uint8_t write_regs(LSM6DSO32_REGISTER regAddress ,byte* writeBuffer, uint length);
 
     /* Functions */
     /**
@@ -270,4 +270,4 @@ public:
 
 
 
-#endif //ARDUINO_LSM6DS032_LSMDS032_H
+#endif //ARDUINO_LSM6DSO32_LSM6DSO32_H
