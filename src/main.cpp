@@ -6,7 +6,7 @@
 // TODO: examples folder
 
 
-#define DEBUG Serial.printf("We got here: %s  Line:%d\n", __FILE__, __LINE__)
+//#define DEBUG Serial.printf("We got here: %s  Line:%d\n", __FILE__, __LINE__)
 
 /*
  * Datasheet: https://www.st.com/resource/en/datasheet/lsm6dso32.pdf
@@ -29,8 +29,7 @@ LSM_FIFO_STATUS fifo_status;
 
 void setup() {
     delay(1000);
-    Serial.begin(9600);
-    Vector<double, 3> a;
+    Serial.begin(115200);
 
     LSM.begin();
     LSM.default_configuration();

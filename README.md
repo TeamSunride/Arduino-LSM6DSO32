@@ -7,11 +7,11 @@ Use the appropriate constructor for your configuration: (see [protocol](https://
 - SPI constructor: (recommended)
 ```cpp
 #define CS_pin 10 // e.g.
-LSM6DS032 LSM(CS_pin, SPI, 4000000);
+LSM6DSO32 LSM(CS_pin, SPI, 4000000);
 ```
 - I2C constructor:
 ```cpp
-LSM6DS032 LSM(&Wire, 1000000);
+LSM6DSO32 LSM(&Wire, 1000000);
 ```
 
 
