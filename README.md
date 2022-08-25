@@ -49,6 +49,24 @@ The output when using compression is identical to the uncompressed data stream, 
 
 <img src="https://github.com/TeamSunride/Arduino-LSM6DSO32/blob/main/resources/outputUsingCompression.jpg">
 
+
+# Filters
+
+The LSM6DSO32 has a number of built-in digital and analogue filters that can be very useful when attempting to eliminate noise.
+
+The `default_configuration()` has a fairly good filter setup, but for specific applications/ other configurations, refer to these diagrams and 
+the [datasheet](https://github.com/TeamSunride/Arduino-LSM6DSO32/blob/main/LSM6DSO32_datasheet.pdf) or [application note](https://github.com/TeamSunride/Arduino-LSM6DSO32/blob/main/LSM6DSO-Application-note.pdf):
+
+### Accelerometer Filters
+
+<img src="https://github.com/TeamSunride/Arduino-LSM6DSO32/blob/main/resources/accel_chain.jpg">
+
+<img src="https://github.com/TeamSunride/Arduino-LSM6DSO32/blob/main/resources/accel_composite_filter.jpg">
+
+### Gyroscope Filters
+
+<img src="https://github.com/TeamSunride/Arduino-LSM6DSO32/blob/main/resources/gyro_chain.jpg">
+
 # Examples
 The [`examples`](https://github.com/TeamSunride/Arduino-LSM6DSO32/tree/main/examples) folder contains some examples of how the LSM6DSO32 can be used.
 - Using the BDR counter: [bdr_counter.cpp](https://github.com/TeamSunride/Arduino-LSM6DSO32/blob/main/examples/bdr_counter.cpp)
