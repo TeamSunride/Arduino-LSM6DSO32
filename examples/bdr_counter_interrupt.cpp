@@ -74,12 +74,13 @@ void setup() {
     // Set the BDR counter threshold. Range: (0-2047)
     LSM.set_BDR_counter_threshold(800);
 
-    LSM.set_INT1_INTERRUPT(INTERRUPTS::CNT_BRD, true);
-
 
     // Attaching the interrupt
     pinMode(BDR_CNT_INTERRUPT_PIN, INPUT_PULLDOWN);
     attachInterrupt(BDR_CNT_INTERRUPT_PIN, interrupt_handler, RISING);
+
+    // Route the interrupt to INT1
+    LSM.set_INT1_INTERRUPT(INTERRUPTS::CNT_BRD, true);
 }
 
 

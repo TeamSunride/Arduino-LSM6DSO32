@@ -50,6 +50,8 @@ protected:
     double accel_conversion_factor;
     double gyro_conversion_factor;
 
+    OFFSET_WEIGHT XL_OFFSET_WEIGHT;
+
     /* 3. Hybrid, based on combined usage of the TAG_CNT field and decimated timestamp sensor */
     uint64_t timestamp_lsb; // stores the timestamp based on updates from the FIFO and the fifo counter
     byte prev_tag_cnt; // stores the previous value of the tag counter from the fifo
@@ -229,33 +231,143 @@ public:
      * @return Status code (0 for success)
      */
     uint8_t set_BDR_counter_threshold(short threshold);
+
+    /**
+     * @brief Get the BDR counter threshold
+     * @return The BDR counter threshold (short)
+     */
     short get_BDR_counter_threshold();
+
+    /**
+     * @brief Set the interrupt on INT1 pin.
+     * @param interrupt
+     * @param enable
+     * @return Status code (0 for success)
+     */
     uint8_t set_INT1_INTERRUPT(INTERRUPTS interrupt, bool enable);
+
+    /**
+     * @brief Set the interrupt on INT2 pin.
+     * @param interrupt
+     * @param enable
+     * @return Status code (0 for success)
+     */
     uint8_t set_INT2_INTERRUPT(INTERRUPTS interrupt, bool enable);
+
+    /**
+     * @brief Access the device ID to confirm that we are actually talking with an LSM
+     * @return The device ID (should be 0x6C)
+     */
     byte who_am_i();
+
+    /**
+     * @brief Set the ODR (output data rate) for the accelerometer
+     * @param rate
+     * @return Status code (0 for success)
+     */
     uint8_t set_accel_ODR(OUTPUT_DATA_RATES rate);
+
+    /**
+     * @brief Set the accelerometer scale (e.g. +-32G
+     * @param scale
+     * @return Status code (0 for success)
+     */
     uint8_t set_accel_full_scale(ACCEL_FULL_SCALE scale);
+
+    /**
+     * @brief Set the ODR (output data rate) for the gyroscope
+     * @param rate
+     * @return Status code (0 for success)
+     */
     uint8_t set_gyro_ODR(OUTPUT_DATA_RATES rate);
+
+    /**
+     * Set the
+     * @param scale
+     * @return
+     */
     uint8_t set_gyro_full_scale(GYRO_FULL_SCALE scale);
 
-    uint8_t enable_LPF2(bool enable);
+    /**
+     * @brief Enable LPF2 filter for the accelerometer
+     * @param enable
+     * @return Status code (0 for success)
+     */
+    uint8_t enable_XL_LPF2(bool enable);
+
+    /**
+     * @brief Set the interrupts to active low (default false)
+     * @param enable
+     * @return Status code (0 for success)
+     */
     uint8_t set_interrupts_active_low(bool enable);
+
+    /**
+     * @brief Put SPI into 3-wire mode
+     * @param enable
+     * @return Status code (0 for success)
+     */
     uint8_t set_SPI_as_3_wire(bool enable);
 
     /**
-     * Register address automatically incremented during a multiple byte access with a
+     * @brief Register address automatically incremented during a multiple byte access with a
         serial interface (I²C or SPI). Default value: 1
      * @param enable
      * @return Status Code (0 for success)
      */
     uint8_t enable_auto_address_increment(bool enable);
+
+    /**
+     * @brief Completely reset the device
+     * @return Status code (0 for success)
+     */
     uint8_t software_reset();
+
+    /**
+     * @brief Enable gyroscope sleep mode
+     * @param enable
+     * @return Status code (0 for success)
+     */
     uint8_t set_gyroscope_sleep(bool enable);
 
+    /**
+     * @brief If enabled, the accelerometer and gyroscope data-ready signals
+                are masked until the settling of the sensor filters is completed.
+     * @param enable
+     * @return Status Code (0 for success)
+     */
     uint8_t enable_data_ready_mask(bool enable);
+
+    /**
+     * @brief Enable the I2C interface (default: I2C enabled)
+     * @param enable
+     * @return Status Code (0 for success)
+     */
     uint8_t enable_i2c_interface(bool enable);
+
+    /**
+     * @brief Enable gyro LPF1 filter. Bandwidth can be selected through gyro_LPF1_bandwidth(byte bandwidth)
+     * @param enable
+     * @return Status Code (0 for success)
+     */
     uint8_t enable_gyro_LPF1(bool enable);
+
+    /**
+     * @brief Put the accelerometer into ultra low power mode
+     * @param enable
+     * @return Status Code (0 for success)
+     */
     uint8_t enable_accel_ultra_low_power(bool enable);
+
+    /**
+     * @brief Enable the rounding function.
+     * The rounding function can be used to auto address the device registers for a circular burst-mode read. Basically,\n
+        with a multiple read operation the address of the register that is being read goes automatically from the first \n
+        register to the last register of the pattern and then goes back to the first one.
+     * @param accelEnable
+     * @param gyroEnable
+     * @return Status Code (0 for success)
+     */
     uint8_t enable_rounding(bool accelEnable, bool gyroEnable);
 
     /**
@@ -270,7 +382,18 @@ public:
      */
     bool gyro_self_test();
 
+    /**
+     * @brief Put the accelerometer into high performance mode
+     * @param enable
+     * @return Status Code (0 for success)
+     */
     uint8_t enable_accel_high_performance_mode(bool enable);
+
+    /**
+     * @brief Set the weight of the offset registers. 2^-10 g/LSB or 2^-6 g/LSB
+     * @param weight
+     * @return Status Code (0 for success)
+     */
     uint8_t select_XL_offset_weight(OFFSET_WEIGHT weight);
 
     /**
@@ -289,33 +412,152 @@ public:
      * @return Status Code (0 for success)
      */
     uint8_t gyro_LPF1_bandwidth(byte bandwidth);
+
+    /**
+     * @brief Enable the gyro high performance mode
+     * @param enable
+     * @return Status Code (0 for success)
+     */
     uint8_t enable_gyro_high_performance_mode(bool enable);
+
+    /**
+     * @brief Enable the gyroscope high pass filter. Only enabled if the gyroscope is in high performance mode.
+     * @param enable
+     * @return Status Code (0 for success)
+     */
     uint8_t enable_gyro_high_pass_filter(bool enable);
+
+    /**
+     * @brief Set the gyro high pass filter cutoff.
+     * @param cutoff
+     * @return Status Code (0 for success)
+     */
     uint8_t set_gyro_high_pass_filter_cutoff(GYRO_HIGH_PASS_FILTER_CUTOFF cutoff);
+
+    /**
+     * @brief Enable the accelerometer offset block
+     * @param enable
+     * @return Status Code (0 for success)
+     */
     uint8_t enable_accel_offset_block(bool enable);
 
+    /**
+     * @brief Set the filter cutoff for either the accel LPF2 or the accel high pass (selected with accel_high_pass_selection)
+     * @param cutoff
+     * @return Status Code (0 for success)
+     */
     uint8_t set_accel_high_pass_or_LPF2_filter_cutoff(ACCEL_HP_OR_LPF2_CUTOFF cutoff);
+
+    /**
+     * @brief Enable accel high pass filter reference mode.
+     * @param enable
+     * @return Status Code (0 for success)
+     */
     uint8_t enable_accel_high_pass_filter_reference_mode(bool enable);
+
+    /**
+     * @brief Enable accel fast settling mode
+     * @param enable
+     * @return Status Code (0 for success)
+     */
     uint8_t enable_accel_fast_settling_mode(bool enable);
+
+    /**
+     * @brief Select high pass filter path for the accel. (false selects the LPF2 path)
+     * @param select
+     * @return Status Code (0 for success)
+     */
     uint8_t accel_high_pass_selection(bool select);
 
-    // TODO: WHAT IS DATA ENABLE (DEN) ?? - CTRL9_XL - see Application note 4.8 - Also CTRL6_C
+    // TODO: DATA ENABLE (DEN) - CTRL9_XL - see Application note 4.8 - Also CTRL6_C - Unsure whether it's worth implementing.
+
+    /**
+     * @brief Enable the counter for the timestamp. - Very important if you are planning to use the Fifo.
+     * @param enable
+     * @return Status Code (0 for success)
+     */
     uint8_t timestamp_counter_enable(bool enable);
 
-    /// STATUS_REG
+    /**
+     * @brief Get the temperature data ready signal status
+     * @return Status Code (0 for success)
+     */
+    bool get_temp_drdy_status();
 
+    /**
+     * @brief Get the gyro data ready signal status
+     * @return Status Code (0 for success)
+     */
+    bool get_gyr_drdy_status();
+
+    /**
+     * @brief Get the accel data ready signal status
+     * @return Status Code (0 for success)
+     */
+    bool get_accel_drdy_status();
+
+    /**
+     * @brief Get the temperature from the temperature sensor.
+     * @return The temperature (short)
+     */
     short get_temperature();
+
+    /**
+     * @brief Get the gyro values direct from the registers.
+     * @return Status Code (0 for success)
+     */
     Vector<double, 3> get_gyro();
+
+    /**
+     * @brief Get the accel values direct from the registers
+     * @return Status Code (0 for success)
+     */
     Vector<double, 3> get_accel();
+
+    /**
+     * @brief Get the timestamp value direct from the registers. - 25us per LSB
+     * @return
+     */
     uint32_t get_timestamp();
 
     /// A bunch of "TAP" and "WAKE_UP" registers - not being implemented as they are not useful in a rocket context
 
+    /**
+     * @brief Set the built in accel offsets
+     * @param offsets
+     * @return Status Code (0 for success)
+     */
+    uint8_t set_XL_offset_compensation(Vector<double, 3> offsets);
+
+    /**
+     * @brief Get the LSM fifo status. (Fifo flags and num unread)
+     * @return Status Code (0 for success)
+     */
     LSM_FIFO_STATUS get_fifo_status();
+
+    /**
+     * @brief Get the timestamps increment based on the BDR (used internally)
+     * @return Status Code (0 for success)
+     */
     int get_timestamp_increment();
+
+    /**
+     * @brief Pop values from the LSM FIFO, process them (decompression, etc), then pop them onto the accFifo and gyrFifo
+     * @param acc_fifo
+     * @param gyr_fifo
+     * @return Status Code (0 for success)
+     */
     uint8_t fifo_pop(Fifo<Vector<double, 4>>& acc_fifo, Fifo<Vector<double, 4>>& gyr_fifo);
+
+    /**
+     * @brief Clear the LSM FIFO
+     */
     void fifo_clear();
 
+    /**
+     * @brief The default configuration for the LSM.
+     * @return Status Code (0 for success)
+     */
     uint8_t default_configuration();
 
 

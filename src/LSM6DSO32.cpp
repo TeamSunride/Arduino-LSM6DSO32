@@ -8,6 +8,9 @@ LSM6DSO32::LSM6DSO32(TwoWire *pipe, uint32_t freq) { // constructor for I2C prot
     device = new I2CProtocol(LSM6DSO32_DEFAULT_I2C_ADDRESS, pipe, freq);
     accel_conversion_factor = 0.0098*0.978; /// Defaults to +- 32g sensitivity
     gyro_conversion_factor = 0.07; /// defaults to +- 2000dps
+
+    XL_OFFSET_WEIGHT = OFFSET_WEIGHT::TWO_TO_MINUS_TEN_G_PER_LSB;
+
     enable_sdo_pullup(true); // pullup for i2c SDA/SDO line - probably best to use external ones as well though
     timestamp_lsb = 0;
     prev_tag_cnt = 0;
@@ -24,6 +27,9 @@ LSM6DSO32::LSM6DSO32(byte chipSelect, SPIClass& spi, uint freq) { // constructor
     device = new SPIProtocol(chipSelect, spi, settings, READ_BYTE, WRITE_BYTE);
     accel_conversion_factor = 0.0098*0.978; /// Defaults to +- 32g sensitivity
     gyro_conversion_factor = 0.07; /// defaults to +- 2000dps
+
+    XL_OFFSET_WEIGHT = OFFSET_WEIGHT::TWO_TO_MINUS_TEN_G_PER_LSB;
+
     timestamp_lsb = 0;
     prev_tag_cnt = 0;
     XL_BDR = BATCHING_DATA_RATES::NO_BATCHING;
@@ -290,7 +296,7 @@ uint8_t LSM6DSO32::set_gyro_full_scale(GYRO_FULL_SCALE scale) {
     return device->write_reg(LSM6DSO32_REGISTER::CTRL2_G, data);
 }
 
-uint8_t LSM6DSO32::enable_LPF2(bool enable) {
+uint8_t LSM6DSO32::enable_XL_LPF2(bool enable) {
     byte data = device->read_reg(LSM6DSO32_REGISTER::CTRL1_XL);
     setBit(&data, 1, enable);
     return device->write_reg(LSM6DSO32_REGISTER::CTRL1_XL, data);
@@ -493,6 +499,7 @@ uint8_t LSM6DSO32::enable_accel_high_performance_mode(bool enable) {
 }
 
 uint8_t LSM6DSO32::select_XL_offset_weight(OFFSET_WEIGHT weight) {
+    XL_OFFSET_WEIGHT = weight;
     byte data = device->read_reg(LSM6DSO32_REGISTER::CTRL6_C);
     setBit(&data, 3, weight);
     return device->write_reg(LSM6DSO32_REGISTER::CTRL6_C, data);
@@ -564,6 +571,24 @@ uint8_t LSM6DSO32::timestamp_counter_enable(bool enable) {
     return device->write_reg(LSM6DSO32_REGISTER::CTRL10_C, data);
 }
 
+bool LSM6DSO32::get_temp_drdy_status() {
+    byte data = device->read_reg(LSM6DSO32_REGISTER::STATUS_REG);
+    return getBit(data, 2);
+}
+
+bool LSM6DSO32::get_gyr_drdy_status() {
+    byte data = device->read_reg(LSM6DSO32_REGISTER::STATUS_REG);
+    return getBit(data, 1);
+}
+
+bool LSM6DSO32::get_accel_drdy_status() {
+    byte data = device->read_reg(LSM6DSO32_REGISTER::STATUS_REG);
+    return getBit(data, 0);
+}
+
+
+
+
 short LSM6DSO32::get_temperature() {
     byte data[2] = {};
     device->read_regs(LSM6DSO32_REGISTER::OUT_TEMP_L, data, 2);
@@ -596,6 +621,34 @@ uint32_t LSM6DSO32::get_timestamp() { // 25us per LSB
     byte data[4] = {};
     device->read_regs(LSM6DSO32_REGISTER::TIMESTAMP0, data, 4);
     return (uint32_t)((data[3]<<24) | (data[2]<<16) | (data[1]<<8) | data[0]);
+}
+
+uint8_t LSM6DSO32::set_XL_offset_compensation(Vector<double, 3> offsets) {
+    Vector<byte, 3> ofs_usr;
+    switch (XL_OFFSET_WEIGHT) {
+        case (OFFSET_WEIGHT::TWO_TO_MINUS_SIX_G_PER_LSB): {
+            double div = pow(2, -6) * 9.81; // 2^-6 g
+            for (int i=0; i<3; i++) {
+                ofs_usr[i] = static_cast<byte>(offsets[i] / div);
+            }
+            break;
+        }
+        case (OFFSET_WEIGHT::TWO_TO_MINUS_TEN_G_PER_LSB): {
+            double div = pow(2, -10) * 9.81; // 2^-6 g
+            for (int i=0; i<3; i++) {
+                ofs_usr[i] = static_cast<byte>(offsets[i] / div);
+            }
+            break;
+        }
+        default:
+            break;
+    }
+
+    uint8_t a = device->write_reg(LSM6DSO32_REGISTER::X_OFS_USR, ofs_usr[0]);
+    uint8_t b = device->write_reg(LSM6DSO32_REGISTER::Y_OFS_USR, ofs_usr[1]);
+    uint8_t c = device->write_reg(LSM6DSO32_REGISTER::Z_OFS_USR, ofs_usr[2]);
+
+    return a | b | c;
 }
 
 
@@ -1011,7 +1064,7 @@ uint8_t LSM6DSO32::default_configuration() {
     /// FIFO MODE
     set_fifo_mode(FIFO_MODES::CONTINUOUS_MODE);
 
-    set_dataready_pulsed(true);
+    set_dataready_pulsed(false); // Latched instead.
     set_gyro_as_batch_count_trigger(false); // using accel instead
     timestamp_counter_enable(true); // VITAL if you are using the FIFO.
     set_BDR_counter_threshold(2047);
@@ -1039,7 +1092,7 @@ uint8_t LSM6DSO32::default_configuration() {
     gyro_LPF1_bandwidth(0b111);
     set_gyro_high_pass_filter_cutoff(GYRO_HIGH_PASS_FILTER_CUTOFF::GYRO_HPFC_16_MHZ);
 
-    enable_LPF2(true);
+    enable_XL_LPF2(true);
     accel_high_pass_selection(false); // lpf2
     set_accel_high_pass_or_LPF2_filter_cutoff(ACCEL_HP_OR_LPF2_CUTOFF::ODR_OVER_45);
     enable_accel_fast_settling_mode(true);
