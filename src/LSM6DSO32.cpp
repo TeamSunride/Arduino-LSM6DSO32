@@ -174,10 +174,16 @@ uint8_t LSM6DSO32::set_gyro_as_batch_count_trigger(bool enable) {
 }
 
 uint8_t LSM6DSO32::set_BDR_counter_threshold(short threshold) {
+    (threshold < 0) ? threshold = 0 : 0; // range checks
+    (threshold > 2047) ? threshold = 2047 : 0;
+    threshold &= 0b0000011111111111;
     byte highByte = device->read_reg(LSM6DSO32_REGISTER::COUNTER_BDR_REG1);
     highByte = highByte & 0b11100000; // 3 and 4 must be 0, clear lower 3 bits
-    highByte &= (byte)(threshold>>8);
-    return (device->write_reg(LSM6DSO32_REGISTER::COUNTER_BDR_REG1, highByte) | device->write_reg(LSM6DSO32_REGISTER::COUNTER_BDR_REG2, (byte)(threshold&0xFF)));
+    highByte = highByte | (byte)(threshold>>8);
+    uint8_t a = device->write_reg( LSM6DSO32_REGISTER::COUNTER_BDR_REG1, highByte );
+    uint8_t b = device->write_reg( LSM6DSO32_REGISTER::COUNTER_BDR_REG2, (byte)(threshold&0xFF) );
+
+    return a | b;
 }
 
 short LSM6DSO32::get_BDR_counter_threshold() {
@@ -486,6 +492,12 @@ uint8_t LSM6DSO32::enable_accel_high_performance_mode(bool enable) {
     return device->write_reg(LSM6DSO32_REGISTER::CTRL6_C, data);
 }
 
+uint8_t LSM6DSO32::select_XL_offset_weight(OFFSET_WEIGHT weight) {
+    byte data = device->read_reg(LSM6DSO32_REGISTER::CTRL6_C);
+    setBit(&data, 3, weight);
+    return device->write_reg(LSM6DSO32_REGISTER::CTRL6_C, data);
+}
+
 uint8_t LSM6DSO32::gyro_LPF1_bandwidth(byte bandwidth) {
     byte data = device->read_reg(LSM6DSO32_REGISTER::CTRL6_C);
     data = data & 0b11111000;
@@ -750,7 +762,7 @@ uint8_t LSM6DSO32::fifo_pop(Fifo<Vector<double, 4>> &acc_fifo, Fifo<Vector<doubl
         {
             // First two bytes contain temperature data, other data is zeros - See application note Table 81 (page 95)
             double temp = (short)((data[2]<<8) | data[1]);
-            // TODO: implement temperature fifo
+            // temperature fifo ???
 
             break;
         }
@@ -1002,7 +1014,7 @@ uint8_t LSM6DSO32::default_configuration() {
     set_dataready_pulsed(true);
     set_gyro_as_batch_count_trigger(false); // using accel instead
     timestamp_counter_enable(true); // VITAL if you are using the FIFO.
-    /// BDR threshold
+    set_BDR_counter_threshold(2047);
     /// INT1, INT2
 
 

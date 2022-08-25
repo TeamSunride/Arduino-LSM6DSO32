@@ -152,22 +152,82 @@ public:
      */
     uint8_t enable_fifo_compression(bool enable);
 
+    /**
+     * @brief Set the uncompressed data fifo batching rate
+     * @param rate
+     * @return Status code (0 for success)
+     */
     uint8_t set_uncompressed_data_rate(UNCOMPRESSED_DATA_BATCHING_RATES rate);
+
+    /**
+     * @brief Set the fifo batching data rate for accel and gyro
+     * @param accel_BDR
+     * @param gyro_BDR
+     * @return Status code (0 for success)
+     */
     uint8_t set_batching_data_rates(BATCHING_DATA_RATES accel_BDR, BATCHING_DATA_RATES gyro_BDR);
+
+    /**
+     * @brief Set the timestamp fifo batching decimation. (Timestamp will batch every *decimation* MAX(XL_BDR, GY_BDR) )
+     * @param decimation
+     * @return Status code (0 for success)
+     */
     uint8_t set_timestamp_batching_decimation(TIMESTAMP_BATCHING_DECIMATION decimation);
+
+    /**
+     * @brief Set the temperature data fifo batching rate.
+     * @param rate
+     * @return Status code (0 for success)
+     */
     uint8_t set_temperature_batching_data_rate(TEMPERATURE_BATCHING_RATE rate);
+
+    /**
+     * @brief Select the fifo mode : (Continuous recommended)
+     *  FIFO mode selection
+     *      (000: Bypass mode: FIFO disabled;
+     *      001: FIFO mode: stops collecting data when FIFO is full;
+     *      010: Reserved;
+     *      011: Continuous-to-FIFO mode: Continuous mode until trigger is deasserted, then
+     *          FIFO mode;
+     *      100: Bypass-to-Continuous mode: Bypass mode until trigger is deasserted, then
+     *          Continuous mode;
+     *      101: Reserved;
+     *      110: Continuous mode: if the FIFO is full, the new sample overwrites the older one;
+     *      111: Bypass-to-FIFO mode: Bypass mode until trigger is deasserted, then FIFO
+     *          mode.)
+     *
+     * @param mode
+     * @return Status code (0 for success)
+     */
     uint8_t set_fifo_mode(FIFO_MODES mode);
 
     /**
-     * Enables pulsed data-ready mode
+     * @brief Enables pulsed data-ready mode
         (0: Data-ready latched mode (returns to 0 only after an interface reading) (default);
         1: Data-ready pulsed mode (the data ready pulses are 75 μs long)
      * @param enable
      * @return Status Code (0 for success)
      */
     uint8_t set_dataready_pulsed(bool enable);
+
+    /**
+     * @brief reset the bdr counter
+     * @return Status code (0 for success)
+     */
     uint8_t reset_counter_bdr();
+
+    /**
+     * @brief True: set Gyro as batch count trigger  |   False: Set Accel as batch count trigger
+     * @param enable
+     * @return Status code (0 for success)
+     */
     uint8_t set_gyro_as_batch_count_trigger(bool enable); /// will select accel if enable is false
+
+    /**
+     * @brief Set the BDR counter threshold. When this threshold is reached, counter_bdr_flag in LSM_FIFO_STATUS is set high.\n Range: 0-2047 (11 bits)
+     * @param threshold
+     * @return Status code (0 for success)
+     */
     uint8_t set_BDR_counter_threshold(short threshold);
     short get_BDR_counter_threshold();
     uint8_t set_INT1_INTERRUPT(INTERRUPTS interrupt, bool enable);
@@ -191,7 +251,7 @@ public:
     uint8_t enable_auto_address_increment(bool enable);
     uint8_t software_reset();
     uint8_t set_gyroscope_sleep(bool enable);
-    /// TODO: INT2_on_INT1 - Necessary?
+
     uint8_t enable_data_ready_mask(bool enable);
     uint8_t enable_i2c_interface(bool enable);
     uint8_t enable_gyro_LPF1(bool enable);
@@ -210,9 +270,8 @@ public:
      */
     bool gyro_self_test();
 
-    /// TRIG_EN, LVL1_EN, LVL2_EN ??
-    u_int8_t enable_accel_high_performance_mode(bool enable);
-    /// TODO: Weight of user offsets
+    uint8_t enable_accel_high_performance_mode(bool enable);
+    uint8_t select_XL_offset_weight(OFFSET_WEIGHT weight);
 
     /**
      * Gyroscope low pass filter bandwidth - Datasheet 9.17 - pg 72 - Table 60
@@ -239,15 +298,12 @@ public:
     uint8_t enable_accel_high_pass_filter_reference_mode(bool enable);
     uint8_t enable_accel_fast_settling_mode(bool enable);
     uint8_t accel_high_pass_selection(bool select);
-    /// LOW_PASS_ON_6D: omit?
 
-    // TODO: WHAT IS DATA ENABLE (DEN) ?? - CTRL9_XL - see Application note 4.8
+    // TODO: WHAT IS DATA ENABLE (DEN) ?? - CTRL9_XL - see Application note 4.8 - Also CTRL6_C
     uint8_t timestamp_counter_enable(bool enable);
-    /// ALL_INT_SRC
-    /// WAKE_UP_SRC
-    /// TAP_SRC
-    /// D6D_SRC
+
     /// STATUS_REG
+
     short get_temperature();
     Vector<double, 3> get_gyro();
     Vector<double, 3> get_accel();

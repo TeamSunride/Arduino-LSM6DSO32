@@ -51,6 +51,9 @@ The output when using compression is identical to the uncompressed data stream, 
 
 # Examples
 The [`examples`](https://github.com/TeamSunride/Arduino-LSM6DSO32/tree/main/examples) folder contains some examples of how the LSM6DSO32 can be used.
+- Using the BDR counter: [bdr_counter.cpp](https://github.com/TeamSunride/Arduino-LSM6DSO32/blob/main/examples/bdr_counter.cpp)
+- Using the BDR counter with interrupts: [bdr_counter_interrupt.cpp](https://github.com/TeamSunride/Arduino-LSM6DSO32/blob/main/examples/direct_read.cpp)
+- 
 - Directly reading from the registers: [direct_read.cpp](https://github.com/TeamSunride/Arduino-LSM6DSO32/blob/main/examples/direct_read.cpp)
 - Using the Fifo, which also demonstrates the compression capabilities: [fifo_with_compression](https://github.com/TeamSunride/Arduino-LSM6DSO32/blob/main/examples/fifo_with_compression.cpp)
 - Reading the watermark threshold flag: [watermark.cpp](https://github.com/TeamSunride/Arduino-LSM6DSO32/blob/main/examples/watermark.cpp)

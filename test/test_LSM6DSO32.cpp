@@ -65,6 +65,12 @@ void test_watermark_set() {
     TEST_ASSERT(LSMTest.get_fifo_watermark() == wtm);
 }
 
+void test_BDR_CNT_SET() {
+    short thr = 2047;
+    LSMTest.set_BDR_counter_threshold(thr);
+    TEST_ASSERT(LSMTest.get_BDR_counter_threshold() == thr);
+}
+
 void test_set_BDR() {
     LSMTest.set_batching_data_rates(BATCHING_DATA_RATES::BDR_104Hz, BATCHING_DATA_RATES::BDR_104Hz); // accel, gyro
     byte reg = LSMTest.read_reg(LSM6DSO32_REGISTER::FIFO_CTRL3);
@@ -91,6 +97,7 @@ int main( int argc, char **argv) {
     RUN_TEST(test_write_reg);
 
     RUN_TEST(test_watermark_set);
+    RUN_TEST(test_BDR_CNT_SET);
     RUN_TEST(test_set_BDR);
 
     LSMTest.default_configuration();

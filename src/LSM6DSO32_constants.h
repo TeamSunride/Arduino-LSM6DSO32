@@ -225,6 +225,11 @@ enum GYRO_FULL_SCALE {
     GYRO_SCALE_2000DPS = 0b11
 };
 
+enum OFFSET_WEIGHT{
+    TWO_TO_MINUS_TEN_G_PER_LSB = 0,
+    TWO_TO_MINUS_SIX_G_PER_LSB = 1
+};
+
 enum GYRO_HIGH_PASS_FILTER_CUTOFF {
     /**
      * Gyroscope digital HP filter cutoff selection. Default: 00

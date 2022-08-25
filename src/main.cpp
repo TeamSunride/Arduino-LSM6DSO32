@@ -1,8 +1,6 @@
 #include <Arduino.h>
 #include "LSM6DSO32.h"
 
-// TODO: Extensive testing
-// TODO: README - photos etc
 
 //#define DEBUG Serial.printf("We got here: %s  Line:%d\n", __FILE__, __LINE__)
 
@@ -61,4 +59,6 @@ void loop() {
 
     delayMicroseconds(5000-(micros()-start)); // wait a bit
 }
+
+
 
