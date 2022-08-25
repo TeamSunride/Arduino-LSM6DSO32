@@ -33,8 +33,6 @@ void setup() {
 
     fifo_status = LSM.get_fifo_status();
     LSM.fifo_clear();
-    bool pass = LSM.gyro_self_test();
-    while(1);
 }
 
 Vector<double, 4> acc = {0,0,0,0};

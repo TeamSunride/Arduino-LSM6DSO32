@@ -49,3 +49,23 @@ The output when using compression is identical to the uncompressed data stream, 
 
 <img src="https://github.com/TeamSunride/Arduino-LSM6DSO32/blob/main/resources/outputUsingCompression.jpg">
 
+# Examples
+The [`examples`](https://github.com/TeamSunride/Arduino-LSM6DSO32/tree/main/examples) folder contains some examples of how the LSM6DSO32 can be used.
+- Directly reading from the registers: [direct_read.cpp](https://github.com/TeamSunride/Arduino-LSM6DSO32/blob/main/examples/direct_read.cpp)
+- Using the Fifo, which also demonstrates the compression capabilities: [fifo_with_compression](https://github.com/TeamSunride/Arduino-LSM6DSO32/blob/main/examples/fifo_with_compression.cpp)
+- Reading the watermark threshold flag: [watermark.cpp](https://github.com/TeamSunride/Arduino-LSM6DSO32/blob/main/examples/watermark.cpp)
+- Using the watermark *interrupt*: [watermark_interrupt.cpp](https://github.com/TeamSunride/Arduino-LSM6DSO32/blob/main/examples/watermark_interrupt.cpp)
+
+To run an example in platformio, run (in library root):
+
+    pio ci ".\examples\direct_read.cpp" -l "." -l "lib/Protocol" -l "lib/Vector" -l "lib/Fifo" -c "platformio.ini"
+
+# Unit testing
+In the `tests` folder, there are some tests that run with unity and platformio
+
+Run the unit tests using `pio test`:
+
+<img src="https://github.com/TeamSunride/Arduino-LSM6DSO32/blob/main/resources/testsPassing1.jpg">
+
+
+
