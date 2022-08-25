@@ -57,6 +57,7 @@ void loop() {
         }
     }
 
+
     delayMicroseconds(5000-(micros()-start)); // wait a bit
 }
 
