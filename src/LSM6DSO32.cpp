@@ -351,6 +351,135 @@ uint8_t LSM6DSO32::enable_rounding(bool accelEnable, bool gyroEnable) {
     return device->write_reg(LSM6DSO32_REGISTER::CTRL5_C, data);
 }
 
+bool LSM6DSO32::accel_self_test() {
+    write_reg(LSM6DSO32_REGISTER::CTRL1_XL, 0x38);
+    write_reg(LSM6DSO32_REGISTER::CTRL2_G, 0x00);
+    write_reg(LSM6DSO32_REGISTER::CTRL3_C, 0x44);
+    write_reg(LSM6DSO32_REGISTER::CTRL4_C, 0x00);
+    write_reg(LSM6DSO32_REGISTER::CTRL5_C, 0x00);
+    write_reg(LSM6DSO32_REGISTER::CTRL6_C, 0x00);
+    write_reg(LSM6DSO32_REGISTER::CTRL7_G, 0x00);
+    write_reg(LSM6DSO32_REGISTER::CTRL8_XL, 0x00);
+    write_reg(LSM6DSO32_REGISTER::CTRL9_XL, 0x00);
+    write_reg(LSM6DSO32_REGISTER::CTRL10_C, 0x00);
+    delay(100);
+    byte reg = read_reg(LSM6DSO32_REGISTER::STATUS_REG);
+    while (getBit(reg, 1) != 1); // wait for XLDA to be set - data ready
+    Vector<double, 3> nost = get_accel();
+    nost = {0,0,0};
+    for (int i=0; i<5; i++) {
+        reg = read_reg(LSM6DSO32_REGISTER::STATUS_REG);
+        while (getBit(reg, 1) != 1); // wait for XLDA to be set - data ready
+        nost += get_accel();
+    }
+    nost /= 5; // average the values on each axis
+    write_reg(LSM6DSO32_REGISTER::CTRL5_C, 0x01); // enable self test
+    delay(100);
+
+    reg = read_reg(LSM6DSO32_REGISTER::STATUS_REG);
+    while (getBit(reg, 1) != 1); // wait for XLDA to be set - data ready
+    Vector<double, 3> avg_st = get_accel();
+    avg_st = {0,0,0};
+    Vector<double, 3> min_st = {0,0,0};
+    Vector<double, 3> max_st = {0,0,0};
+    for (int j=0; j<5; j++) {
+        reg = read_reg(LSM6DSO32_REGISTER::STATUS_REG);
+        while (getBit(reg, 1) != 1); // wait for XLDA to be set - data ready
+        Vector<double, 3> reading = get_accel();
+        for (int i=0; i<3; i++) {
+            if (reading[i] < min_st[i]) {
+                min_st[i] = reading[i];
+            }
+            if (reading[i] > max_st[i]) {
+                max_st[i] = reading[i];
+            }
+        }
+        avg_st += reading;
+        delay(20);
+    }
+    avg_st /= 5; // average 5 samples
+
+    write_reg(LSM6DSO32_REGISTER::CTRL5_C, 0x00); // disable self test
+
+    bool pass = true;
+    for (int i=0; i<3; i++) {
+        if ( ( std::abs(min_st[i]) <= (std::abs(avg_st[i]) - std::abs(nost[i])) ) && ( ( std::abs(avg_st[i]) - std::abs(nost[i]) ) <= std::abs(max_st[i])) ){
+            pass = true;
+        }
+        else {
+            pass = false;
+        }
+    }
+
+    return pass;
+}
+
+bool LSM6DSO32::gyro_self_test() {
+    write_reg(LSM6DSO32_REGISTER::CTRL1_XL, 0x00);
+    write_reg(LSM6DSO32_REGISTER::CTRL2_G,  0x5C);
+    write_reg(LSM6DSO32_REGISTER::CTRL3_C,  0x44);
+    write_reg(LSM6DSO32_REGISTER::CTRL4_C,  0x00);
+    write_reg(LSM6DSO32_REGISTER::CTRL5_C,  0x00);
+    write_reg(LSM6DSO32_REGISTER::CTRL6_C,  0x00);
+    write_reg(LSM6DSO32_REGISTER::CTRL7_G,  0x00);
+    write_reg(LSM6DSO32_REGISTER::CTRL8_XL, 0x00);
+    write_reg(LSM6DSO32_REGISTER::CTRL9_XL, 0x00);
+    write_reg(LSM6DSO32_REGISTER::CTRL10_C, 0x00);
+    delay(100);
+    byte reg = read_reg(LSM6DSO32_REGISTER::STATUS_REG);
+    while (getBit(reg, 2) != 1); // wait for GDA to be set - data ready
+    Vector<double, 3> nost = get_gyro();
+    nost = {0,0,0};
+    for (int i=0; i<5; i++) {
+        reg = read_reg(LSM6DSO32_REGISTER::STATUS_REG);
+        while (getBit(reg, 2) != 1); // wait for GDA to be set - data ready
+        nost += get_gyro();
+    }
+    nost /= 5; // average the values on each axis
+    write_reg(LSM6DSO32_REGISTER::CTRL5_C, 0x04); // enable self test
+    delay(100);
+
+
+    reg = read_reg(LSM6DSO32_REGISTER::STATUS_REG);
+    while (getBit(reg, 2) != 1); // wait for GDA to be set - data ready
+    Vector<double, 3> avg_st = get_gyro();
+    avg_st = {0,0,0};
+    Vector<double, 3> min_st = {0,0,0};
+    Vector<double, 3> max_st = {0,0,0};
+    for (int j=0; j<5; j++) {
+        reg = read_reg(LSM6DSO32_REGISTER::STATUS_REG);
+        while (getBit(reg, 2) != 1); // wait for GDA to be set - data ready
+        Vector<double, 3> reading = get_gyro();
+        for (int i=0; i<3; i++) {
+            if (reading[i] < min_st[i]) {
+                min_st[i] = reading[i];
+            }
+            if (reading[i] > max_st[i]) {
+                max_st[i] = reading[i];
+            }
+
+        }
+        avg_st += reading;
+        delay(5);
+    }
+    avg_st /= 5; // average 5 samples
+
+    write_reg(LSM6DSO32_REGISTER::CTRL5_C, 0x00); // disable self test
+
+    bool pass = true;
+    for (int i=0; i<3; i++) {
+        if ( ( std::abs(min_st[i]) <= (std::abs(avg_st[i]) - std::abs(nost[i])) ) && ( ( std::abs(avg_st[i]) - std::abs(nost[i]) ) <= std::abs(max_st[i])) ){
+            pass = true;
+        }
+        else {
+            pass = false;
+        }
+    }
+
+    return pass;
+}
+
+
 uint8_t LSM6DSO32::enable_accel_high_performance_mode(bool enable) {
     byte data = device->read_reg(LSM6DSO32_REGISTER::CTRL6_C);
     setBit(&data, 4, !enable);
@@ -907,5 +1036,6 @@ uint8_t LSM6DSO32::default_configuration() {
 
     return 0;
 }
+
 
 

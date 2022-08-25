@@ -197,10 +197,22 @@ public:
     uint8_t enable_gyro_LPF1(bool enable);
     uint8_t enable_accel_ultra_low_power(bool enable);
     uint8_t enable_rounding(bool accelEnable, bool gyroEnable);
-    /// TODO: self test stuff  (CTRL5_C) -- see appplication note
+
+    /**
+     * @brief Performs a self test on the accelerometer
+     * @return Bool indicating pass(true) or fail(false)
+     */
+    bool accel_self_test();
+
+    /**
+     * @brief Performs a self test on the gyroscope
+     * @return Bool indicating pass(true) or fail(false)
+     */
+    bool gyro_self_test();
+
     /// TRIG_EN, LVL1_EN, LVL2_EN ??
     u_int8_t enable_accel_high_performance_mode(bool enable);
-    /// Weight of user offsets
+    /// TODO: Weight of user offsets
 
     /**
      * Gyroscope low pass filter bandwidth - Datasheet 9.17 - pg 72 - Table 60
@@ -239,7 +251,7 @@ public:
     short get_temperature();
     Vector<double, 3> get_gyro();
     Vector<double, 3> get_accel();
-    uint32_t get_timestamp(); // TODO: Best representation of this? - resolution is 25us / LSB
+    uint32_t get_timestamp();
 
     /// A bunch of "TAP" and "WAKE_UP" registers - not being implemented as they are not useful in a rocket context
 
@@ -248,22 +260,7 @@ public:
     uint8_t fifo_pop(Fifo<Vector<double, 4>>& acc_fifo, Fifo<Vector<double, 4>>& gyr_fifo);
     void fifo_clear();
 
-
-
-
-
-
     uint8_t default_configuration();
-
-
-
-
-
-
-
-
-
-
 
 
 };

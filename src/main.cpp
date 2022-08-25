@@ -1,10 +1,8 @@
 #include <Arduino.h>
 #include "LSM6DSO32.h"
 
-
+// TODO: Extensive testing
 // TODO: README - photos etc
-// TODO: examples folder
-
 
 //#define DEBUG Serial.printf("We got here: %s  Line:%d\n", __FILE__, __LINE__)
 
@@ -35,6 +33,8 @@ void setup() {
 
     fifo_status = LSM.get_fifo_status();
     LSM.fifo_clear();
+    bool pass = LSM.gyro_self_test();
+    while(1);
 }
 
 Vector<double, 4> acc = {0,0,0,0};

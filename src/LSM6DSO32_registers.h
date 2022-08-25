@@ -9,7 +9,7 @@
 
 enum LSM6DSO32_REGISTER { // Registers are scoped to avoid confusion with other sensor registers names - Please use the scoping when you can
     FUNC_CFG_ADDRESS           =  0x01,    // R/W
-    PIN_CTRL                   =  0x02,
+    PIN_CTRL                   =  0x02,    // R/W
     // reserved                 0x03-0x06
     FIFO_CTRL1                 =  0x07,    // R/W
     FIFO_CTRL2                 =  0x08,    // R/W
