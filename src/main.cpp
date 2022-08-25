@@ -18,7 +18,6 @@
 
 /* Usage */
 #define CS_pin 10
-SPISettings settings = SPISettings(4000000, MSBFIRST, SPI_MODE2);
 LSM6DSO32 LSM(CS_pin, SPI, 4000000); // spi protocol constructor
 //LSM6DSO32 LSM(&Wire, 1000000); // i2c protocol constructor
 

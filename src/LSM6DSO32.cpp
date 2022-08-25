@@ -864,7 +864,7 @@ uint8_t LSM6DSO32::default_configuration() {
     enable_fifo_compression_runtime(true);
 
     /// BATCHING DATA RATES
-    set_batching_data_rates(BATCHING_DATA_RATES::BDR_208Hz, BATCHING_DATA_RATES::BDR_208Hz); // accel, gyro
+    set_batching_data_rates(BATCHING_DATA_RATES::BDR_104Hz, BATCHING_DATA_RATES::BDR_104Hz); // accel, gyro
     set_timestamp_batching_decimation(TIMESTAMP_BATCHING_DECIMATION::DECIMATION_8); // timestamp decimation
 
     /// FIFO MODE

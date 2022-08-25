@@ -190,7 +190,7 @@ enum INTERRUPTS {
      * Enables FIFO threshold interrupt on INT pin. It can be also used to trigger
         an IBI when the MIPI I3CSM interface is used.
      */
-    FIFO_TH = 3, /// Fifo Threshold
+    FIFO_TH = 3, /// Fifo Threshold - Is set high when fifo level passes watermark.
     BOOT = 2, /// Enables boot status on INT1 pin
     DRDY_G = 1, /// data ready interrupt for gyroscope
     DRDY_XL = 0 /// data ready interrupt for accelerometer
