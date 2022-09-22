@@ -6,7 +6,7 @@
 /// Constructors
 LSM6DSO32::LSM6DSO32(TwoWire *pipe, uint32_t freq) { // constructor for I2C protocol
     device = new I2CProtocol(LSM6DSO32_DEFAULT_I2C_ADDRESS, pipe, freq);
-    accel_conversion_factor = 0.0098*0.978; /// Defaults to +- 32g sensitivity
+    accel_conversion_factor = 0.009806*0.978; /// Defaults to +- 32g sensitivity
     gyro_conversion_factor = 0.07; /// defaults to +- 2000dps
 
     XL_OFFSET_WEIGHT = OFFSET_WEIGHT::TWO_TO_MINUS_TEN_G_PER_LSB;
@@ -25,7 +25,7 @@ LSM6DSO32::LSM6DSO32(byte chipSelect, SPIClass& spi, uint freq) { // constructor
 
     SPISettings settings = SPISettings(freq, MSBFIRST, SPI_MODE3);
     device = new SPIProtocol(chipSelect, spi, settings, READ_BYTE, WRITE_BYTE);
-    accel_conversion_factor = 0.0098*0.978; /// Defaults to +- 32g sensitivity
+    accel_conversion_factor = 0.009806*0.978; /// Defaults to +- 32g sensitivity
     gyro_conversion_factor = 0.07; /// defaults to +- 2000dps
 
     XL_OFFSET_WEIGHT = OFFSET_WEIGHT::TWO_TO_MINUS_TEN_G_PER_LSB;
@@ -232,19 +232,19 @@ uint8_t LSM6DSO32::set_accel_full_scale(ACCEL_FULL_SCALE scale) {
 
     switch (scale) {
         case (ACCEL_FULL_SCALE::ACCEL_SCALE_4G): {
-            accel_conversion_factor = 0.0098*0.122;
+            accel_conversion_factor = 0.009806*0.122;
             break;
         }
         case (ACCEL_FULL_SCALE::ACCEL_SCALE_8G): {
-            accel_conversion_factor = 0.0098*0.244;
+            accel_conversion_factor = 0.009806*0.244;
             break;
         }
         case (ACCEL_FULL_SCALE::ACCEL_SCALE_16G): {
-            accel_conversion_factor = 0.0098*0.488;
+            accel_conversion_factor = 0.009806*0.488;
             break;
         }
         case (ACCEL_FULL_SCALE::ACCEL_SCALE_32G): {
-            accel_conversion_factor = 0.0098*0.976;
+            accel_conversion_factor = 0.009806*0.976;
             break;
         }
         default: {
