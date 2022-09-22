@@ -521,6 +521,7 @@ public:
     uint32_t get_timestamp();
 
     /// A bunch of "TAP" and "WAKE_UP" registers - not being implemented as they are not useful in a rocket context
+    // TODO: Look at launch detect interrupt
 
     /**
      * @brief Set the built in accel offsets

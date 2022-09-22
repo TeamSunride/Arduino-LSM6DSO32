@@ -47,10 +47,10 @@ void setup() {
     LSM.set_accel_ODR(OUTPUT_DATA_RATES::ODR_1_6_HZ);
 
     // Very high output rate (uncomment to try)
-//    LSM.enable_accel_ultra_low_power(false);
-//    LSM.enable_accel_high_performance_mode(true);
-//    LSM.set_accel_ODR(OUTPUT_DATA_RATES::ODR_6667_HZ);
-//    LSM.enable_data_ready_mask(false);
+    LSM.enable_accel_ultra_low_power(false);
+    LSM.enable_accel_high_performance_mode(true);
+    LSM.set_accel_ODR(OUTPUT_DATA_RATES::ODR_6667_HZ);
+    LSM.enable_data_ready_mask(false);
 
 
 

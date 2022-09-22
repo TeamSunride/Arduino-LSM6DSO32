@@ -63,17 +63,17 @@ void loop() {
             }
         }
     }
-    if (gyrFifo.fifo_status() != Fifo_STATUS::Fifo_EMPTY) {
-        int usedSpace = gyrFifo.used_space();
-        for (int i = 0; i < usedSpace; i++) {
-            gyr = gyrFifo.pop();
-            if (Serial) {
-                Serial.printf("Gyr: %lf, %lf, %lf     ", gyr[0], gyr[1], gyr[2]);
-                //Serial.printf("Timestamp: %lf   ", gyr[4]); // The 4th field in the Vector is the timestamp.
-                Serial.println();
-            }
-        }
-    }
+//    if (gyrFifo.fifo_status() != Fifo_STATUS::Fifo_EMPTY) {
+//        int usedSpace = gyrFifo.used_space();
+//        for (int i = 0; i < usedSpace; i++) {
+//            gyr = gyrFifo.pop();
+//            if (Serial) {
+//                Serial.printf("Gyr: %lf, %lf, %lf     ", gyr[0], gyr[1], gyr[2]);
+//                //Serial.printf("Timestamp: %lf   ", gyr[4]); // The 4th field in the Vector is the timestamp.
+//                Serial.println();
+//            }
+//        }
+//    }
 
     delayMicroseconds(5000-(micros()-start)); // wait for exactly 5ms
 }
