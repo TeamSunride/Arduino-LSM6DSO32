@@ -1,6 +1,11 @@
 # Arduino-LSM6DSO32
-An Arduino library for the [LSM6DSO32](https://www.st.com/en/mems-and-sensors/lsm6dso32.html) inertial module.
+An Arduino / PlatformIO library for the [LSM6DSO32](https://www.st.com/en/mems-and-sensors/lsm6dso32.html) inertial module.
 
+<img src="https://github.com/TeamSunride/Arduino-LSM6DSO32/blob/main/resources/adafruitBoard.jpg">
+
+*Image credit: Adafruit*
+
+Developed by [Sam Scott](https://github.com/robosam2003)
 
 # Usage
 Use the appropriate constructor for your configuration: (see [protocol](https://github.com/TeamSunride/Protocol))
