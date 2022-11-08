@@ -770,7 +770,7 @@ uint8_t LSM6DSO32::fifo_pop(Fifo<Vector<double, 4>> &acc_fifo, Fifo<Vector<doubl
     }
 
     // uncomment to get the tag number (hex)
-    //if (Serial)Serial.printf("Tag: 0X%X\n", tag);
+    if (Serial)Serial.printf("Tag: 0X%X\n", tag);
     //if (Serial)Serial.printf("Tag Counter: %d\n", tag_cnt);
     int i=0;
     while ((((prev_tag_cnt+i)%4) != tag_cnt)) { i++; }
@@ -966,15 +966,15 @@ uint8_t LSM6DSO32::fifo_pop(Fifo<Vector<double, 4>> &acc_fifo, Fifo<Vector<doubl
 
             // 8 bit signed data - See application note Table 88 (page 109)
             //Vector<double, 4> v3 = gyr_fifo.peekFront(); // data(i-3)
-            double datax2 = (data[1] * gyro_conversion_factor) + mostRecentGyro[0]; // data(i - 2) = diff(i - 2) + data(i - 3)
-            double datay2 = (data[2] * gyro_conversion_factor) + mostRecentGyro[1]; // data(i - 2) = diff(i - 2) + data(i - 3)
-            double dataz2 = (data[3] * gyro_conversion_factor) + mostRecentGyro[2]; // data(i - 2) = diff(i - 2) + data(i - 3)
+            double datax2 = ((int8_t)data[1] * gyro_conversion_factor) + mostRecentGyro[0]; // data(i - 2) = diff(i - 2) + data(i - 3)
+            double datay2 = ((int8_t)data[2] * gyro_conversion_factor) + mostRecentGyro[1]; // data(i - 2) = diff(i - 2) + data(i - 3)
+            double dataz2 = ((int8_t)data[3] * gyro_conversion_factor) + mostRecentGyro[2]; // data(i - 2) = diff(i - 2) + data(i - 3)
             auto t2 = static_cast<double>(timestamp_lsb - get_timestamp_increment()*2); // data(i-2)
 
 
-            double datax1 = (data[4] * gyro_conversion_factor) + datax2; // data(i - 1) = diff(i - 1) + data(i - 2)
-            double datay1 = (data[5] * gyro_conversion_factor) + datay2; // data(i - 1) = diff(i - 1) + data(i - 2)
-            double dataz1 = (data[6] * gyro_conversion_factor) + dataz2; // data(i - 1) = diff(i - 1) + data(i - 2)
+            double datax1 = ((int8_t)data[4] * gyro_conversion_factor) + datax2; // data(i - 1) = diff(i - 1) + data(i - 2)
+            double datay1 = ((int8_t)data[5] * gyro_conversion_factor) + datay2; // data(i - 1) = diff(i - 1) + data(i - 2)
+            double dataz1 = ((int8_t)data[6] * gyro_conversion_factor) + dataz2; // data(i - 1) = diff(i - 1) + data(i - 2)
             auto t1 = static_cast<double>(timestamp_lsb - get_timestamp_increment()*1); // data(i-1)
 
             gyr_fifo.push(Vector<double, 4> {datax2, datay2, dataz2, t2});
