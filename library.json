@@ -14,5 +14,12 @@
       "name": "Samuel Scott",
       "maintainer": true
     }
-  ]
+  ],
+  "dependencies":
+  {
+    "external-repo": "https://github.com/TeamSunride/Fifo#v1.0",
+    "external-repo": "https://github.com/TeamSunride/Protocol#v1.0",
+    "external-repo": "https://github.com/TeamSunride/Vector#v1.0"
+
+  }
 }
