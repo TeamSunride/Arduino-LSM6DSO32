@@ -10,8 +10,8 @@
  bit 0: RW bit. When 0, the data DI(7:0) is written into the device. When 1, the data DO(7:0) from the
  device is read. In latter case, the chip will drive SDO at the start of bit 8.
 */
-#define WRITE_BYTE 0b00000000
-#define READ_BYTE 0b10000000
+#define LSM6DSO32_WRITE_BYTE 0b00000000
+#define LSM6DSO32_READ_BYTE 0b10000000
 
 #define LSM6DSO32_DEFAULT_I2C_ADDRESS 0x6A // from back of adafruit breakout board
 

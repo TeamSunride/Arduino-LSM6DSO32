@@ -24,7 +24,7 @@ LSM6DSO32::LSM6DSO32(TwoWire *pipe, uint32_t freq) { // constructor for I2C prot
 LSM6DSO32::LSM6DSO32(byte chipSelect, SPIClass& spi, uint freq) { // constructor for SPI protocol
 
     SPISettings settings = SPISettings(freq, MSBFIRST, SPI_MODE3);
-    device = new SPIProtocol(chipSelect, spi, settings, READ_BYTE, WRITE_BYTE);
+    device = new SPIProtocol(chipSelect, spi, settings, LSM6DSO32_READ_BYTE, LSM6DSO32_WRITE_BYTE);
     accel_conversion_factor = 0.009806*0.978; /// Defaults to +- 32g sensitivity
     gyro_conversion_factor = 0.07; /// defaults to +- 2000dps
 
