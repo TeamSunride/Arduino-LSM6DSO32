@@ -1,6 +1,6 @@
 {
   "name": "Arduino-LSM6DSO32",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "PlatformIO / Arduino library for the LSM6DSO32 inertial module",
   "keywords": "arduino, sensor, LSM6DSO32, adafruit, interrupt, IMU",
   "repository":
