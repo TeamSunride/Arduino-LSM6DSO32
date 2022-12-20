@@ -21,5 +21,15 @@
     "TeamSunride/Protocol#v1.0": "https://github.com/TeamSunride/Protocol#v1.1",
     "TeamSunride/Vector#v1.0": "https://github.com/TeamSunride/Vector#v1.0"
 
+  },
+  "export": {
+    "exclude": [
+      "cmake-build-*/*",
+      "CMakeListPrivate.txt",
+      ".idea",
+      "/test/tmp_pio_test_transport.cpp",
+      ".vscode/",
+      "test/__pycache__/"
+    ]
   }
 }
