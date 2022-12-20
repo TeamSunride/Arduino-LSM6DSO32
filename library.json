@@ -1,7 +1,7 @@
 {
   "name": "Arduino-LSM6DSO32",
-  "version": "1.0.0",
-  "description": "PlatformIO / Arduino library designed to make it easy to use advanced features of the Bosch BNO055 IMU.",
+  "version": "1.1.1",
+  "description": "PlatformIO / Arduino library for the LSM6DSO32 inertial module",
   "keywords": "arduino, sensor, LSM6DSO32, adafruit, interrupt, IMU",
   "repository":
   {
