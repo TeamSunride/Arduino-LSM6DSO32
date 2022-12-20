@@ -31,5 +31,8 @@
       ".vscode/",
       "test/__pycache__/"
     ]
-  }
+  },
+  "headers": [
+    "LSM6DSO32.h"
+  ]
 }
