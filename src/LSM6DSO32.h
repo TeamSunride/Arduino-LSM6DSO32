@@ -21,29 +21,6 @@
 */
 
 
-struct LSM_FIFO_STATUS {
-    ///  0: FIFO filling is lower than WTM; 1: FIFO filling is equal to or greater than WTM)
-    bool watermark_flag;
-
-    /// (0: FIFO is not completely filled; 1: FIFO is completely filled)
-    bool overrun_flag;
-
-    /// (0: FIFO is not full; 1: FIFO will be full at the next ODR)
-    bool smart_fifo_full_flag;
-
-    /// Counter BDR reaches the CNT_BDR_TH_[10:0] threshold set in
-    //  COUNTER_BDR_REG1 (0Bh) and COUNTER_BDR_REG2 (0Ch). Default value: 0
-    //  This bit is reset when these registers are read.
-    bool counter_bdr_flag;
-
-    /// Latched FIFO overrun status. Default value: 0
-    //  This bit is reset when this register is read.
-    bool fifo_ovr_latched;
-
-    /// Number of unread sensor data (TAG + 6 bytes) stored in FIFO. Default value: 00
-    uint16_t num_fifo_unread;
-};
-
 // The LSM6DSO32 can be used as an I2C or SPI device, use the appropriate constructor for the desired protocol.
 class LSM6DSO32{ // This could maybe be a child of the IMU class??
 protected:
@@ -51,13 +28,13 @@ protected:
     double accel_conversion_factor;
     double gyro_conversion_factor;
 
-    OFFSET_WEIGHT XL_OFFSET_WEIGHT;
+    LSM::OFFSET_WEIGHT XL_OFFSET_WEIGHT;
 
     /* 3. Hybrid, based on combined usage of the TAG_CNT field and decimated timestamp sensor */
     uint64_t timestamp_lsb; // stores the timestamp based on updates from the FIFO and the fifo counter
     byte prev_tag_cnt; // stores the previous value of the tag counter from the fifo
-    BATCHING_DATA_RATES XL_BDR; // needed for timestamp-timestamp counter hybrid.
-    BATCHING_DATA_RATES GY_BDR;
+    LSM::BATCHING_DATA_RATES XL_BDR; // needed for timestamp-timestamp counter hybrid.
+    LSM::BATCHING_DATA_RATES GY_BDR;
 
     // For compression algorithm.
     Vector<double, 4> mostRecentAcc;
@@ -87,10 +64,10 @@ public:
     }
 
     // breakout reg functions to LSM class
-    byte read_reg(LSM6DSO32_REGISTER regAddress);
-    void read_regs(LSM6DSO32_REGISTER regAddress, byte* outputPointer,  uint length);
-    uint8_t write_reg(LSM6DSO32_REGISTER regAddress, byte data);
-    uint8_t write_regs(LSM6DSO32_REGISTER regAddress ,byte* writeBuffer, uint length);
+    byte read_reg(byte regAddress);
+    void read_regs(byte regAddress, byte* outputPointer,  uint length);
+    uint8_t write_reg(byte regAddress, byte data);
+    uint8_t write_regs(byte regAddress ,byte* writeBuffer, uint length);
 
     /* Functions */
     /**
@@ -160,7 +137,7 @@ public:
      * @param rate
      * @return Status code (0 for success)
      */
-    uint8_t set_uncompressed_data_rate(UNCOMPRESSED_DATA_BATCHING_RATES rate);
+    uint8_t set_uncompressed_data_rate(LSM::UNCOMPRESSED_DATA_BATCHING_RATES rate);
 
     /**
      * @brief Set the fifo batching data rate for accel and gyro
@@ -168,21 +145,21 @@ public:
      * @param gyro_BDR
      * @return Status code (0 for success)
      */
-    uint8_t set_batching_data_rates(BATCHING_DATA_RATES accel_BDR, BATCHING_DATA_RATES gyro_BDR);
+    uint8_t set_batching_data_rates(LSM::BATCHING_DATA_RATES accel_BDR, LSM::BATCHING_DATA_RATES gyro_BDR);
 
     /**
      * @brief Set the timestamp fifo batching decimation. (Timestamp will batch every *decimation* MAX(XL_BDR, GY_BDR) )
      * @param decimation
      * @return Status code (0 for success)
      */
-    uint8_t set_timestamp_batching_decimation(TIMESTAMP_BATCHING_DECIMATION decimation);
+    uint8_t set_timestamp_batching_decimation(LSM::TIMESTAMP_BATCHING_DECIMATION decimation);
 
     /**
      * @brief Set the temperature data fifo batching rate.
      * @param rate
      * @return Status code (0 for success)
      */
-    uint8_t set_temperature_batching_data_rate(TEMPERATURE_BATCHING_RATE rate);
+    uint8_t set_temperature_batching_data_rate(LSM::TEMPERATURE_BATCHING_RATE rate);
 
     /**
      * @brief Select the fifo mode : (Continuous recommended)
@@ -202,7 +179,7 @@ public:
      * @param mode
      * @return Status code (0 for success)
      */
-    uint8_t set_fifo_mode(FIFO_MODES mode);
+    uint8_t set_fifo_mode(LSM::FIFO_MODES mode);
 
     /**
      * @brief Enables pulsed data-ready mode
@@ -245,7 +222,7 @@ public:
      * @param enable
      * @return Status code (0 for success)
      */
-    uint8_t set_INT1_INTERRUPT(INTERRUPTS interrupt, bool enable);
+    uint8_t set_INT1_INTERRUPT(LSM::INTERRUPTS interrupt, bool enable);
 
     /**
      * @brief Set the interrupt on INT2 pin.
@@ -253,7 +230,7 @@ public:
      * @param enable
      * @return Status code (0 for success)
      */
-    uint8_t set_INT2_INTERRUPT(INTERRUPTS interrupt, bool enable);
+    uint8_t set_INT2_INTERRUPT(LSM::INTERRUPTS interrupt, bool enable);
 
     /**
      * @brief Access the device ID to confirm that we are actually talking with an LSM
@@ -266,28 +243,28 @@ public:
      * @param rate
      * @return Status code (0 for success)
      */
-    uint8_t set_accel_ODR(OUTPUT_DATA_RATES rate);
+    uint8_t set_accel_ODR(LSM::OUTPUT_DATA_RATES rate);
 
     /**
      * @brief Set the accelerometer scale (e.g. +-32G
      * @param scale
      * @return Status code (0 for success)
      */
-    uint8_t set_accel_full_scale(ACCEL_FULL_SCALE scale);
+    uint8_t set_accel_full_scale(LSM::ACCEL_FULL_SCALE scale);
 
     /**
      * @brief Set the ODR (output data rate) for the gyroscope
      * @param rate
      * @return Status code (0 for success)
      */
-    uint8_t set_gyro_ODR(OUTPUT_DATA_RATES rate);
+    uint8_t set_gyro_ODR(LSM::OUTPUT_DATA_RATES rate);
 
     /**
      * Set the
      * @param scale
      * @return
      */
-    uint8_t set_gyro_full_scale(GYRO_FULL_SCALE scale);
+    uint8_t set_gyro_full_scale(LSM::GYRO_FULL_SCALE scale);
 
     /**
      * @brief Enable LPF2 filter for the accelerometer
@@ -395,7 +372,7 @@ public:
      * @param weight
      * @return Status Code (0 for success)
      */
-    uint8_t select_XL_offset_weight(OFFSET_WEIGHT weight);
+    uint8_t select_XL_offset_weight(LSM::OFFSET_WEIGHT weight);
 
     /**
      * Gyroscope low pass filter bandwidth - Datasheet 9.17 - pg 72 - Table 60
@@ -433,7 +410,7 @@ public:
      * @param cutoff
      * @return Status Code (0 for success)
      */
-    uint8_t set_gyro_high_pass_filter_cutoff(GYRO_HIGH_PASS_FILTER_CUTOFF cutoff);
+    uint8_t set_gyro_high_pass_filter_cutoff(LSM::GYRO_HIGH_PASS_FILTER_CUTOFF cutoff);
 
     /**
      * @brief Enable the accelerometer offset block
@@ -447,7 +424,7 @@ public:
      * @param cutoff
      * @return Status Code (0 for success)
      */
-    uint8_t set_accel_high_pass_or_LPF2_filter_cutoff(ACCEL_HP_OR_LPF2_CUTOFF cutoff);
+    uint8_t set_accel_high_pass_or_LPF2_filter_cutoff(LSM::ACCEL_HP_OR_LPF2_CUTOFF cutoff);
 
     /**
      * @brief Enable accel high pass filter reference mode.
@@ -535,7 +512,7 @@ public:
      * @brief Get the LSM fifo status. (Fifo flags and num unread)
      * @return Status Code (0 for success)
      */
-    LSM_FIFO_STATUS get_fifo_status();
+    LSM::FIFO_STATUS get_fifo_status();
 
     /**
      * @brief Get the timestamps increment based on the BDR (used internally)
