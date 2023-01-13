@@ -13,8 +13,8 @@
 */
 
 /* Usage */
-#define CS_pin 10
-LSM6DSO32 LSM(CS_pin, SPI, 4000000); // spi protocol constructor
+#define CS_pin 40
+LSM6DSO32 LSM(CS_pin, SPI, 12000000); // spi protocol constructor
 //LSM6DSO32 LSM(&Wire, 1000000); // i2c protocol constructor
 
 
@@ -28,6 +28,8 @@ void setup() {
 
     LSM.begin();
     LSM.default_configuration();
+    LSM.set_accel_ODR(OUTPUT_DATA_RATES::ODR_6667_HZ);
+    LSM.set_accel_high_pass_or_LPF2_filter_cutoff(ACCEL_HP_OR_LPF2_CUTOFF::ODR_OVER_800);
 
     fifo_status = LSM.get_fifo_status();
     LSM.fifo_clear();
@@ -60,6 +62,3 @@ void loop() {
 
     delayMicroseconds(5000-(micros()-start)); // wait a bit
 }
-
-
-

@@ -9,7 +9,7 @@
 #include "LSM6DSO32.h"
 
 // The LSM6DSO32 can be used with either SPI or I2C, and this library supports both, using Protocol: https://github.com/TeamSunride/Protocol
-#define CS_pin 10
+#define CS_pin 40
 LSM6DSO32 LSM(CS_pin, SPI, 4000000); // spi protocol constructor
 // LSM6DSO32 LSM(&Wire, 1000000); // i2c protocol constructor
 

@@ -4,6 +4,7 @@
 #ifndef ARDUINO_LSM6DSO32_LSM6DSO32_H
 #define ARDUINO_LSM6DSO32_LSM6DSO32_H
 
+
 #include "protocol.h"
 #include "LSM6DSO32_registers.h"
 #include "LSM6DSO32_constants.h"
@@ -75,7 +76,7 @@ public:
      * @param spi
      * @param settings
      */
-    LSM6DSO32(byte chipSelect, SPIClass& spi, uint freq);
+    LSM6DSO32(byte chipSelect, SPIClass& spi, uint32_t freq);
 
     /**
      * @brief begin the device
