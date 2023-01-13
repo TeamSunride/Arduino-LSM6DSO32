@@ -16,13 +16,13 @@
 
 // The LSM6DSO32 can be used with either SPI or I2C, and this library supports both, using Protocol: https://github.com/TeamSunride/Protocol
 #define CS_pin 10
-LSM6DSO32 LSM(CS_pin, SPI, 4000000); // spi protocol constructor
+LSM6DSO32::LSM6DSO32 LSM(CS_pin, SPI, 4000000); // spi protocol constructor
 //LSM6DSO32 LSM(&Wire, 1000000); // i2c protocol constructor
 
 // Using dynamically allocated Fifo: https://github.com/TeamSunride/Fifo
 Fifo<Vector<double, 4>> accFifo(1024);
 Fifo<Vector<double, 4>> gyrFifo(1024);
-LSM_FIFO_STATUS fifo_status;
+LSM6DSO32::FIFO_STATUS fifo_status;
 
 
 
@@ -67,7 +67,7 @@ void setup() {
     // default_configuration() configures the device. - Specific settings can be set after calling this:
     LSM.default_configuration();
     // Example of how you can disable the gyro from batching in the built-in Fifo. (saves space if you aren't using the gyro)
-    LSM.set_batching_data_rates(BATCHING_DATA_RATES::BDR_833Hz, BATCHING_DATA_RATES::NO_BATCHING); // accel, gyro
+    LSM.set_batching_data_rates(LSM6DSO32::BATCHING_DATA_RATES::BDR_833Hz, LSM6DSO32::BATCHING_DATA_RATES::NO_BATCHING); // accel, gyro
     LSM.enable_fifo_compression_runtime(true); // make sure compression is enabled.
 
     LSM.set_gyro_as_batch_count_trigger(false); // using accel as batch count trigger.
@@ -80,7 +80,7 @@ void setup() {
     attachInterrupt(BDR_CNT_INTERRUPT_PIN, interrupt_handler, RISING);
 
     // Route the interrupt to INT1
-    LSM.set_INT1_INTERRUPT(INTERRUPTS::CNT_BRD, true);
+    LSM.set_INT1_INTERRUPT(LSM6DSO32::INTERRUPTS::CNT_BRD, true);
 }
 
 

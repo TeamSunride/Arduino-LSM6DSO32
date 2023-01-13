@@ -16,52 +16,52 @@
 
 // The LSM6DSO32 can be used with either SPI or I2C, and this library supports both, using Protocol: https://github.com/TeamSunride/Protocol
 #define CS_pin 10
-LSM6DSO32 sensor(CS_pin, SPI, 4000000); // spi protocol constructor
+LSM6DSO32_driver LSM(CS_pin, SPI, 4000000); // spi protocol constructor
 //LSM6DSO32 sensor(&Wire, 1000000); // i2c protocol constructor
 
 // Using dynamically allocated Fifo: https://github.com/TeamSunride/Fifo
 Fifo<Vector<double, 4>> accFifo(1024);
 Fifo<Vector<double, 4>> gyrFifo(1024);
-LSM::FIFO_STATUS fifo_status;
+LSM6DSO32::FIFO_STATUS fifo_status;
 
 void setup() {
     // Setup Serial on 115200 baud
     Serial.begin(115200);
 
     // begin() initialises the communication protocol.
-    sensor.begin();
+    LSM.begin();
 
     // default_configuration() configures the device. - Specific settings can be set after calling this:
-    sensor.default_configuration();
+    LSM.default_configuration();
     // Example of how you can disable the gyro from batching in the built-in Fifo. (saves space if you aren't using the gyro)
-    sensor.set_batching_data_rates(LSM::BATCHING_DATA_RATES::BDR_833Hz, LSM::BATCHING_DATA_RATES::NO_BATCHING); // accel, gyro
-    sensor.enable_fifo_compression_runtime(true); // make sure compression is enabled.
+    LSM.set_batching_data_rates(LSM6DSO32::BATCHING_DATA_RATES::BDR_833Hz, LSM6DSO32::BATCHING_DATA_RATES::NO_BATCHING); // accel, gyro
+    LSM.enable_fifo_compression_runtime(true); // make sure compression is enabled.
 
-    sensor.set_gyro_as_batch_count_trigger(false); // using accel as batch count trigger.
+    LSM.set_gyro_as_batch_count_trigger(false); // using accel as batch count trigger.
     // Set the BDR counter threshold. Range: (0-2047)
-    sensor.set_BDR_counter_threshold(800);
+    LSM.set_BDR_counter_threshold(800);
     // Update the LSM's FIFO Status
-    fifo_status = sensor.get_fifo_status();
+    fifo_status = LSM.get_fifo_status();
 
     // Clear the LSM FIFO
-    sensor.fifo_clear();
+    LSM.fifo_clear();
 }
 
 Vector<double, 4> acc = {0,0,0,0};
 Vector<double, 4> gyr = {0,0,0,0};
 void loop() {
-    fifo_status = sensor.get_fifo_status();
+    fifo_status = LSM.get_fifo_status();
     // fifo_status contains flags about the FIFO state, as well as how many unread 7-byte sets there are.
 
     // When 800 accelerometer readings have been counted, flush the fifo.
     // Note that this is *not* the same as using watermark, because of the compression algorithm. The fifo level at 800 accel readings is about 420 out of 512.
     while (fifo_status.counter_bdr_flag != 1) {
-        fifo_status = sensor.get_fifo_status();
+        fifo_status = LSM.get_fifo_status();
     }
 
     int num_unread = fifo_status.num_fifo_unread;
     for (int i=0;i<num_unread;i++) {
-        sensor.fifo_pop(accFifo, gyrFifo); // Flush the data into accFifo and gyrFifo
+        LSM.fifo_pop(accFifo, gyrFifo); // Flush the data into accFifo and gyrFifo
     }
 
     if (accFifo.fifo_status() != Fifo_STATUS::Fifo_EMPTY) {

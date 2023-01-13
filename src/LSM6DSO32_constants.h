@@ -16,7 +16,7 @@
 
 #define LSM6DSO32_DEFAULT_I2C_ADDRESS 0x6A // from back of adafruit breakout board
 
-namespace LSM {
+namespace LSM6DSO32 {
 
     struct FIFO_STATUS {
         ///  0: FIFO filling is lower than WTM; 1: FIFO filling is equal to or greater than WTM)

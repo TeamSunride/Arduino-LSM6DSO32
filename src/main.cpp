@@ -12,39 +12,38 @@
  * Application note: https://www.st.com/resource/en/application_note/dm00517282-lsm6dso-alwayson-3d-accelerometer-and-3d-gyroscope-stmicroelectronics.pdf
 */
 
-// TODO: reformat all the examples so they don't use "LSM" as the sensor name - "LSM" is a namespace now.
 
 /* Usage */
 #define CS_pin 40
-LSM6DSO32 sensor(CS_pin, SPI, 12000000); // spi protocol constructor
+LSM6DSO32::LSM6DSO32 LSM(CS_pin, SPI, 12000000); // spi protocol constructor
 //LSM6DSO32 sensor(&Wire, 1000000); // i2c protocol constructor
 
 
 Fifo<Vector<double, 4>> accFifo(1024);
 Fifo<Vector<double, 4>> gyrFifo(1024);
-LSM::FIFO_STATUS fifo_status;
+LSM6DSO32::FIFO_STATUS fifo_status;
 
 void setup() {
     delay(1000);
     Serial.begin(115200);
 
-    sensor.begin();
-    sensor.default_configuration();
-    sensor.set_accel_ODR(LSM::OUTPUT_DATA_RATES::ODR_6667_HZ);
-    sensor.set_accel_high_pass_or_LPF2_filter_cutoff(LSM::ACCEL_HP_OR_LPF2_CUTOFF::ODR_OVER_800);
+    LSM.begin();
+    LSM.default_configuration();
+    LSM.set_accel_ODR(LSM6DSO32::OUTPUT_DATA_RATES::ODR_6667_HZ);
+    LSM.set_accel_high_pass_or_LPF2_filter_cutoff(LSM6DSO32::ACCEL_HP_OR_LPF2_CUTOFF::ODR_OVER_800);
 
-    fifo_status = sensor.get_fifo_status();
-    sensor.fifo_clear();
+    fifo_status = LSM.get_fifo_status();
+    LSM.fifo_clear();
 }
 
 Vector<double, 4> acc = {0,0,0,0};
 Vector<double, 4> gyr = {0,0,0,0};
 void loop() {
     unsigned long start = micros();
-    fifo_status = sensor.get_fifo_status();
+    fifo_status = LSM.get_fifo_status();
     int num_unread = fifo_status.num_fifo_unread;
     for (int i=0;i<num_unread;i++) {
-        sensor.fifo_pop(accFifo, gyrFifo);
+        LSM.fifo_pop(accFifo, gyrFifo);
     }
 
     if (accFifo.fifo_status() != Fifo_STATUS::Fifo_EMPTY) {

@@ -6,7 +6,7 @@
 #define LSM6DSO32_REGISTERS_H
 
 // Dear GitHub copilot: You are truly appreciated. - Yours, Sam.
-namespace LSM {
+namespace LSM6DSO32 {
     enum REGISTER { // Registers are scoped to avoid confusion with other sensor registers names - Please use the scoping when you can
         FUNC_CFG_ADDRESS           =  0x01,    // R/W
         PIN_CTRL                   =  0x02,    // R/W
