@@ -7,7 +7,7 @@
 namespace LSM6DSO32 {
 /// Constructors
     LSM6DSO32::LSM6DSO32(TwoWire *pipe, uint32_t freq) { // constructor for I2C protocol
-        device = new I2CProtocol(LSM6DSO32_DEFAULT_I2C_ADDRESS, pipe, freq);
+        device = new I2CProtocol(DEFAULT_I2C_ADDRESS, pipe, freq);
         accel_conversion_factor = 0.009806 * 0.978; /// Defaults to +- 32g sensitivity
         gyro_conversion_factor = 0.07; /// defaults to +- 2000dps
 

@@ -8,7 +8,7 @@
 #define WHO_AM_I_ID 0x6C
 
 
-LSM6DSO32 LSMTest(CS_pin, SPI, 4000000);
+LSM6DSO32::LSM6DSO32 LSMTest(CS_pin, SPI, 12000000);
 
 void setUp(void) {
     // set stuff up here
@@ -55,8 +55,8 @@ void test_get_timestamp() {
 }
 
 void test_write_reg() {
-    LSMTest.write_reg(X_OFS_USR, 0x23);
-    TEST_ASSERT(LSMTest.read_reg(X_OFS_USR) == 0x23);
+    LSMTest.write_reg(LSM6DSO32::REGISTER::X_OFS_USR, 0x23);
+    TEST_ASSERT(LSMTest.read_reg(LSM6DSO32::REGISTER::X_OFS_USR) == 0x23);
 }
 
 void test_watermark_set() {
@@ -72,9 +72,9 @@ void test_BDR_CNT_SET() {
 }
 
 void test_set_BDR() {
-    LSMTest.set_batching_data_rates(BATCHING_DATA_RATES::BDR_104Hz, BATCHING_DATA_RATES::BDR_104Hz); // accel, gyro
-    byte reg = LSMTest.read_reg(LSM6DSO32_REGISTER::FIFO_CTRL3);
-    TEST_ASSERT(reg == (((BATCHING_DATA_RATES::BDR_104Hz<<4) | BATCHING_DATA_RATES::BDR_104Hz)));
+    LSMTest.set_batching_data_rates(LSM6DSO32::BATCHING_DATA_RATES::BDR_104Hz, LSM6DSO32::BATCHING_DATA_RATES::BDR_104Hz); // accel, gyro
+    byte reg = LSMTest.read_reg(LSM6DSO32::REGISTER::FIFO_CTRL3);
+    TEST_ASSERT(reg == (((LSM6DSO32::BATCHING_DATA_RATES::BDR_104Hz<<4) | LSM6DSO32::BATCHING_DATA_RATES::BDR_104Hz)));
 }
 
 void test_XL_self_test() {

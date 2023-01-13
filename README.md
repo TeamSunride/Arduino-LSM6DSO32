@@ -7,16 +7,22 @@ An Arduino / PlatformIO library for the [LSM6DSO32](https://www.st.com/en/mems-a
 
 Developed by [Sam Scott](https://github.com/robosam2003)
 
+# Namespace
+The class and it's registers are scoped within the `LSM6DSO32` namespace. 
+
+E.g `LSM6DSO32::REGISTER::FIFO_CTRL1`,  `LSM6DSO32::BATCHING_DATA_RATES::BDR_6667Hz`
+
 # Usage
+
 Use the appropriate constructor for your configuration: (see [protocol](https://github.com/TeamSunride/Protocol))
 - SPI constructor: (recommended)
 ```cpp
 #define CS_pin 10 // e.g.
-LSM6DSO32 LSM(CS_pin, SPI, 4000000);
+LSM6DSO32::LSM6DSO32 LSM(CS_pin, SPI, 4000000);
 ```
 - I2C constructor:
 ```cpp
-LSM6DSO32 LSM(&Wire, 1000000);
+LSM6DSO32::LSM6DSO32 LSM(&Wire, 1000000);
 ```
 
 

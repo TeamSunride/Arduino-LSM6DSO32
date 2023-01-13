@@ -11,34 +11,34 @@
  device is read. In latter case, the chip will drive SDO at the start of bit 8.
 */
 
-#define WRITE_BYTE 0b00000000
-#define READ_BYTE 0b10000000
-
-#define LSM6DSO32_DEFAULT_I2C_ADDRESS 0x6A // from back of adafruit breakout board
 
 namespace LSM6DSO32 {
+    // Protocol stuff
+    static const uint8_t WRITE_BYTE = 0b00000000; // These are unique to this device, so they are member functions
+    static const uint8_t READ_BYTE = 0b10000000;  // They are needed to make protocol work properly.
+    static const uint8_t DEFAULT_I2C_ADDRESS = 0x6A; // from back of adafruit breakout board
 
     struct FIFO_STATUS {
         ///  0: FIFO filling is lower than WTM; 1: FIFO filling is equal to or greater than WTM)
-        bool watermark_flag;
+        bool watermark_flag {};
 
         /// (0: FIFO is not completely filled; 1: FIFO is completely filled)
-        bool overrun_flag;
+        bool overrun_flag {};
 
         /// (0: FIFO is not full; 1: FIFO will be full at the next ODR)
-        bool smart_fifo_full_flag;
+        bool smart_fifo_full_flag {};
 
         /// Counter BDR reaches the CNT_BDR_TH_[10:0] threshold set in
         //  COUNTER_BDR_REG1 (0Bh) and COUNTER_BDR_REG2 (0Ch). Default value: 0
         //  This bit is reset when these registers are read.
-        bool counter_bdr_flag;
+        bool counter_bdr_flag {};
 
         /// Latched FIFO overrun status. Default value: 0
         //  This bit is reset when this register is read.
-        bool fifo_ovr_latched;
+        bool fifo_ovr_latched {};
 
         /// Number of unread sensor data (TAG + 6 bytes) stored in FIFO. Default value: 00
-        uint16_t num_fifo_unread;
+        uint16_t num_fifo_unread{};
     };
 
 
@@ -57,7 +57,7 @@ namespace LSM6DSO32 {
         UNCOPTR_32 = 0b11
     };
 
-    enum LSM6DSO32_OPERATING_MODES {
+    enum OPERATING_MODES {
         /**
          * The LSM6DSO32 has three operating modes available:
          * - only accelerometer active and gyroscope in power-down
@@ -69,7 +69,7 @@ namespace LSM6DSO32 {
         ACCEL_AND_GYRO // Independent Output Data Rates (ODR)
     };
 
-    enum LSM6DSO32_ACCEL_POWER_MODES {
+    enum ACCEL_POWER_MODES {
         ACCEL_POWER_DOWN,
         ACCEL_ULTRA_LOW_POWER,
         ACCEL_LOW_POWER,
@@ -77,7 +77,7 @@ namespace LSM6DSO32 {
         ACCEL_HIGH_PERFORMANCE
     };
 
-    enum LSM6DSO32_GYRO_POWER_MODES {
+    enum GYRO_POWER_MODES {
         GYRO_POWER_DOWN,
         GYRO_ULTRA_LOW_POWER,
         GYRO_LOW_POWER,

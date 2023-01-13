@@ -28,6 +28,7 @@ namespace LSM6DSO32 {
     class LSM6DSO32 {
     protected:
         protocol *device;
+
         double accel_conversion_factor;
         double gyro_conversion_factor;
 
