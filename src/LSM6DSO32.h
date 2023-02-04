@@ -8,7 +8,7 @@
 #include "LSM6DSO32_registers.h"
 #include "LSM6DSO32_constants.h"
 #include "Vector.h"
-#include "dynamicFifo.h" // using dynamically allocated fifo because fifo size is not known at compile time.
+#include "DynamicFifo.h" // using dynamically allocated fifo because fifo size is not known at compile time.
 
 
 
@@ -548,7 +548,7 @@ public:
      * @param gyr_fifo
      * @return Status Code (0 for success)
      */
-    uint8_t fifo_pop(Fifo<Vector<double, 4>>& acc_fifo, Fifo<Vector<double, 4>>& gyr_fifo);
+    uint8_t fifo_pop(DynamicFifo<Vector<double, 4>>& acc_fifo, DynamicFifo<Vector<double, 4>>& gyr_fifo);
 
     /**
      * @brief Clear the LSM FIFO

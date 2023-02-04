@@ -18,8 +18,8 @@ LSM6DSO32 LSM(CS_pin, SPI, 4000000); // spi protocol constructor
 //LSM6DSO32 LSM(&Wire, 1000000); // i2c protocol constructor
 
 
-Fifo<Vector<double, 4>> accFifo(1024);
-Fifo<Vector<double, 4>> gyrFifo(1024);
+DynamicFifo<Vector<double, 4>> accFifo(1024);
+DynamicFifo<Vector<double, 4>> gyrFifo(1024);
 LSM_FIFO_STATUS fifo_status;
 
 void setup() {

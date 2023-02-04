@@ -740,7 +740,7 @@ int8_t int5_t(int fiveBits){
 
 
 
-uint8_t LSM6DSO32::fifo_pop(Fifo<Vector<double, 4>> &acc_fifo, Fifo<Vector<double, 4>> &gyr_fifo) { // three data fields then one timestamp.
+uint8_t LSM6DSO32::fifo_pop(DynamicFifo<Vector<double, 4>> &acc_fifo, DynamicFifo<Vector<double, 4>> &gyr_fifo) { // three data fields then one timestamp.
     /*
      * When FIFO is enabled and the mode is different from Bypass, reading the FIFO output registers return the oldest
        FIFO sample set. Whenever these registers are read, their content is moved to the SPI/I²C/MIPI I3C output
