@@ -17,8 +17,8 @@
   ],
   "dependencies":
   {
-    "TeamSunride/Fifo#v1.0": "https://github.com/TeamSunride/Fifo#v1.1",
-    "TeamSunride/Protocol#v1.0": "https://github.com/TeamSunride/Protocol#v1.1",
+    "TeamSunride/Fifo#v1.1": "https://github.com/TeamSunride/Fifo#v1.1",
+    "TeamSunride/Protocol#v1.1": "https://github.com/TeamSunride/Protocol#v1.1",
     "TeamSunride/Vector#v1.0": "https://github.com/TeamSunride/Vector#v1.0"
 
   },
