@@ -30,4 +30,4 @@ add_custom_target(
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-add_executable(Z_DUMMY_TARGET ${SRC_LIST} examples/bdr_counter.cpp examples/data_ready_signal.cpp examples/bdr_counter_interrupt.cpp)
+add_executable(Z_DUMMY_TARGET ${SRC_LIST})
