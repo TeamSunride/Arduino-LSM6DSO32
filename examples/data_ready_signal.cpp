@@ -10,8 +10,8 @@
 
 // The LSM6DSO32 can be used with either SPI or I2C, and this library supports both, using Protocol: https://github.com/TeamSunride/Protocol
 #define CS_pin 10
-LSM6DSO32 LSM(CS_pin, SPI, 4000000); // spi protocol constructor
-// LSM6DSO32 LSM(&Wire, 1000000); // i2c protocol constructor
+LSM6DSO32::LSM6DSO32 LSM(CS_pin, SPI, 4000000); // spi protocol constructor
+// LSM6DSO32 sensor(&Wire, 1000000); // i2c protocol constructor
 
 
 void setup() {
@@ -27,12 +27,12 @@ void setup() {
 
     // Super low output rate
     LSM.enable_accel_ultra_low_power(true);
-    LSM.set_accel_ODR(OUTPUT_DATA_RATES::ODR_1_6_HZ);
+    LSM.set_accel_ODR(LSM6DSO32::OUTPUT_DATA_RATES::ODR_1_6_HZ);
 
     // Very high output rate (uncomment to try)
-//    LSM.enable_accel_ultra_low_power(false);
-//    LSM.enable_accel_high_performance_mode(true);
-//    LSM.set_accel_ODR(OUTPUT_DATA_RATES::ODR_6667_HZ);
+//    sensor.enable_accel_ultra_low_power(false);
+//    sensor.enable_accel_high_performance_mode(true);
+//    sensor.set_accel_ODR(OUTPUT_DATA_RATES::ODR_6667_HZ);
 }
 
 void loop() {

@@ -12,7 +12,7 @@
 
 // The LSM6DSO32 can be used with either SPI or I2C, and this library supports both, using Protocol: https://github.com/TeamSunride/Protocol
 #define CS_pin 10
-LSM6DSO32 LSM(CS_pin, SPI, 4000000); // spi protocol constructor
+LSM6DSO32::LSM6DSO32 LSM(CS_pin, SPI, 4000000); // spi protocol constructor
 // LSM6DSO32 LSM(&Wire, 1000000); // i2c protocol constructor
 
 
@@ -44,12 +44,12 @@ void setup() {
 
     // Super low output rate
     LSM.enable_accel_ultra_low_power(true);
-    LSM.set_accel_ODR(OUTPUT_DATA_RATES::ODR_1_6_HZ);
+    LSM.set_accel_ODR(LSM6DSO32::OUTPUT_DATA_RATES::ODR_1_6_HZ);
 
     // Very high output rate (uncomment to try)
     LSM.enable_accel_ultra_low_power(false);
     LSM.enable_accel_high_performance_mode(true);
-    LSM.set_accel_ODR(OUTPUT_DATA_RATES::ODR_6667_HZ);
+    LSM.set_accel_ODR(LSM6DSO32::OUTPUT_DATA_RATES::ODR_6667_HZ);
     LSM.enable_data_ready_mask(false);
 
 
@@ -59,7 +59,7 @@ void setup() {
     attachInterrupt(DRDY_INTERRUPT_PIN, interrupt_handler, RISING);
 
     // Route the interrupt to INT1
-    LSM.set_INT1_INTERRUPT(INTERRUPTS::DRDY_XL, true);
+    LSM.set_INT1_INTERRUPT(LSM6DSO32::INTERRUPTS::DRDY_XL, true);
     // LSM.set_INT2_INTERRUPT(INTERRUPTS::DRDY_G, true); // using the gyro as the data ready interrupt
 }
 
