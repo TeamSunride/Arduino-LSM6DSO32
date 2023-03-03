@@ -100,8 +100,4 @@ Run the unit tests using `pio test`:
 
 <img src="https://github.com/TeamSunride/Arduino-LSM6DSO32/blob/main/resources/testsPassing1.jpg">
 
-# How to init submodules
-
-    git submodule update --init --recursive
-    
 

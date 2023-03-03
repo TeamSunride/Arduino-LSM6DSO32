@@ -40,7 +40,14 @@ void loop() {
     while (LSM.get_accel_drdy_status() != 1); // wait for the signal.
     Vector<double, 3> acc = LSM.get_accel(); // read the data.
     Vector<double, 3> gyr = LSM.get_gyro();
-    Serial.printf("Acc: %lf, %lf, %lf\n", acc[0], acc[1], acc[2]);
-    //Serial.printf("Gyr: %lf, %lf, %lf\n", gyr[0], gyr[1], gyr[2]);
+    Serial.print("Acc: ");
+    Serial.print(acc[0]); Serial.print(", ");
+    Serial.print(acc[1]); Serial.print(", ");
+    Serial.print(acc[2]);
+
+//    Serial.print("   Gyr: ");
+//    Serial.print(gyr[0]); Serial.print(", ");
+//    Serial.print(gyr[1]); Serial.print(", ");
+//    Serial.print(gyr[2]);
 
 }

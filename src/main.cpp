@@ -14,7 +14,7 @@
 
 
 /* Usage */
-#define CS_pin 40
+#define CS_pin 10
 LSM6DSO32::LSM6DSO32 LSM(CS_pin, SPI, 12000000); // spi protocol constructor
 //LSM6DSO32 sensor(&Wire, 1000000); // i2c protocol constructor
 
@@ -53,8 +53,16 @@ void loop() {
             gyr = gyrFifo.pop();
             if (Serial) {
                 // comment out to your needs.
-                Serial.printf("Acc: %lf, %lf, %lf", acc[0], acc[1], acc[2]);
-                //Serial.printf("Gyr: %lf, %lf, %lf", gyr[0], gyr[1], gyr[2]);
+                Serial.print("Acc: ");
+                Serial.print(acc[0]); Serial.print(", ");
+                Serial.print(acc[1]); Serial.print(", ");
+                Serial.print(acc[2]);
+
+//                Serial.print("Gyr: ");
+//                Serial.print(gyr[0]); Serial.print(", ");
+//                Serial.print(gyr[1]); Serial.print(", ");
+//                Serial.print(gyr[2]); Serial.print(", ");
+
                 Serial.println();
             }
         }

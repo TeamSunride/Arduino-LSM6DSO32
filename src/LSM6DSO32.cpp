@@ -18,9 +18,9 @@ namespace LSM6DSO32 {
         prev_tag_cnt = 0;
         XL_BDR = BATCHING_DATA_RATES::NO_BATCHING;
         GY_BDR = BATCHING_DATA_RATES::NO_BATCHING;
-        mostRecentAcc = {0, 0, 0, 0};
-        mostRecentGyro = {0, 0, 0, 0};
 
+        mostRecentAcc[0] = mostRecentAcc[1] = mostRecentAcc[2] = mostRecentAcc[3] = 0;
+        mostRecentGyro[0] = mostRecentGyro[1] = mostRecentGyro[2] = mostRecentGyro[3] = 0;
     }
 
     LSM6DSO32::LSM6DSO32(byte chipSelect, SPIClass &spi, uint32_t freq) { // constructor for SPI protocol
@@ -36,8 +36,8 @@ namespace LSM6DSO32 {
         prev_tag_cnt = 0;
         XL_BDR = BATCHING_DATA_RATES::NO_BATCHING;
         GY_BDR = BATCHING_DATA_RATES::NO_BATCHING;
-        mostRecentAcc = {0, 0, 0, 0};
-        mostRecentGyro = {0, 0, 0, 0};
+        mostRecentAcc[0] = mostRecentAcc[1] = mostRecentAcc[2] = mostRecentAcc[3] = 0;
+        mostRecentGyro[0] = mostRecentGyro[1] = mostRecentGyro[2] = mostRecentGyro[3] = 0;
     }
 
 // Cheers GitHub copilot ;)
@@ -424,8 +424,8 @@ namespace LSM6DSO32 {
 
         bool pass = true;
         for (int i = 0; i < 3; i++) {
-            if ((std::abs(min_st[i]) <= (std::abs(avg_st[i]) - std::abs(nost[i]))) &&
-                ((std::abs(avg_st[i]) - std::abs(nost[i])) <= std::abs(max_st[i]))) {
+            if ((abs(min_st[i]) <= (abs(avg_st[i]) - abs(nost[i]))) &&
+                ((abs(avg_st[i]) - abs(nost[i])) <= abs(max_st[i]))) {
                 pass = true;
             } else {
                 pass = false;
@@ -489,8 +489,8 @@ namespace LSM6DSO32 {
 
         bool pass = true;
         for (int i = 0; i < 3; i++) {
-            if ((std::abs(min_st[i]) <= (std::abs(avg_st[i]) - std::abs(nost[i]))) &&
-                ((std::abs(avg_st[i]) - std::abs(nost[i])) <= std::abs(max_st[i]))) {
+            if ((abs(min_st[i]) <= (abs(avg_st[i]) - abs(nost[i]))) &&
+                ((abs(avg_st[i]) - abs(nost[i])) <= abs(max_st[i]))) {
                 pass = true;
             } else {
                 pass = false;
@@ -627,7 +627,11 @@ namespace LSM6DSO32 {
     uint32_t LSM6DSO32::get_timestamp() { // 25us per LSB
         byte data[4] = {};
         device->read_regs(REGISTER::TIMESTAMP0, data, 4);
-        return (uint32_t) ((data[3] << 24) | (data[2] << 16) | (data[1] << 8) | data[0]);
+        // disable warning: left shift count >= width of type with pragma
+        return (uint32_t) (((uint32_t)data[3] << 24) |
+                            ((uint32_t)data[2] << 16) |
+                            ((uint32_t) data[1] << 8) |
+                            (uint32_t) data[0]);
     }
 
     uint8_t LSM6DSO32::set_XL_offset_compensation(Vector<double, 3> offsets) {
@@ -660,7 +664,10 @@ namespace LSM6DSO32 {
 
 
     FIFO_STATUS LSM6DSO32::get_fifo_status() {
-        struct FIFO_STATUS status = {false, false, false, false, false, 0};
+        struct FIFO_STATUS status = {};
+        status.watermark_flag = status.overrun_flag = status.smart_fifo_full_flag = status.counter_bdr_flag = status.fifo_ovr_latched = false;
+        status.num_fifo_unread = 0;
+
         byte a[2] = {};
         device->read_regs(REGISTER::FIFO_STATUS1, a, 2);
         status.watermark_flag = getBit(a[1], 7);
@@ -771,9 +778,10 @@ namespace LSM6DSO32 {
 
         // The tag counter is synchronized with the highest BDR. It is for making sense of the time slot in which compressed sensor data occurred. - See application note 9.4 (page 94)
         byte tag_cnt = (data[0] & 0b00000110) >> 1;
-        byte tag_parity = data[0] & 0b00000001;
+        // byte tag_parity = data[0] & 0b00000001;
         if ((getNumOnes(data[0]) % 2) != 0) {
-            Serial.printf("Tag parity error: %d\n", getNumOnes(data[0]));
+            Serial.print("Tag parity error: %d\n");
+            Serial.print(getNumOnes(data[0]));
         }
 
         // uncomment to get the tag number (hex)
@@ -822,7 +830,7 @@ namespace LSM6DSO32 {
             case (FIFO_TAG::TEMPERATURE): // 0x03 // Uncompressed
             {
                 // First two bytes contain temperature data, other data is zeros - See application note Table 81 (page 95)
-                double temp = (short) ((data[2] << 8) | data[1]);
+                // double temp = (short) ((data[2] << 8) | data[1]);
                 // temperature fifo ???
 
                 break;
@@ -834,9 +842,11 @@ namespace LSM6DSO32 {
                    change if the CFG-Change sensor is not batched in FIFO - application note 9.5 (page 95)
                 */
                 // First 4 bytes contain timestamp, rest is metadata about the BDR - See application note Table 82 (page 95)
-                timestamp_lsb =
-                        (data[4] << 24) | (data[3] << 16) | (data[2] << 8) | data[1]; // update the timestamp_lsb
-                byte BDR_SHUB = data[5] & 0b00001111; // Sensor hub BDR
+                timestamp_lsb = (((uint32_t) data[4] << 24) |
+                                   ((uint32_t)data[3] << 16) |
+                                   ((uint32_t) data[2] << 8) |
+                                   (uint32_t) data[1]);
+                // byte BDR_SHUB = data[5] & 0b00001111; // Sensor hub BDR
                 XL_BDR = (BATCHING_DATA_RATES) (data[6] & 0b00001111); // update Accelerometer BDR
                 GY_BDR = (BATCHING_DATA_RATES) ((data[6] & 0b11110000) >> 4); // update Gyroscope BDR
                 break;

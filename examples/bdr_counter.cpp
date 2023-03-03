@@ -71,7 +71,10 @@ void loop() {
         for (int i = 0; i < usedSpace; i++) {
             acc = accFifo.pop();
             if (Serial) {
-                Serial.printf("Acc: %lf, %lf, %lf", acc[0], acc[1], acc[2]);
+                Serial.print("Acc: ");
+                Serial.print(acc[0]); Serial.print(", ");
+                Serial.print(acc[1]); Serial.print(", ");
+                Serial.print(acc[2]);
                 //Serial.printf("Timestamp: %lf   ", acc[4]); // The 4th field in the Vector is the timestamp.
                 Serial.println();
             }

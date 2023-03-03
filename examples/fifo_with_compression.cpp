@@ -57,8 +57,12 @@ void loop() {
         for (int i = 0; i < usedSpace; i++) {
             acc = accFifo.pop();
             if (Serial) {
-                Serial.printf("Acc: %lf, %lf, %lf     ", acc[0], acc[1], acc[2]);
-                //Serial.printf("Timestamp: %lf   ", acc[4]); // The 4th field in the Vector is the timestamp.
+                Serial.print("Acc: ");
+                Serial.print(acc[0]); Serial.print(", ");
+                Serial.print(acc[1]); Serial.print(", ");
+                Serial.print(acc[2]);
+                // Serial.print("Timestamp: ");
+                // Serial.print(acc[3]); // The 4th field in the Vector is the timestamp.
                 Serial.println();
             }
         }
@@ -68,8 +72,12 @@ void loop() {
 //        for (int i = 0; i < usedSpace; i++) {
 //            gyr = gyrFifo.pop();
 //            if (Serial) {
-//                Serial.printf("Gyr: %lf, %lf, %lf     ", gyr[0], gyr[1], gyr[2]);
-//                //Serial.printf("Timestamp: %lf   ", gyr[4]); // The 4th field in the Vector is the timestamp.
+//                Serial.print("Gyr: ");
+//                Serial.print(gyr[0]); Serial.print(", ");
+//                Serial.print(gyr[1]); Serial.print(", ");
+//                Serial.print(gyr[2]);
+//                // Serial.print("Timestamp: ");
+//                // Serial.print(gyr[3]); // The 4th field in the Vector is the timestamp.
 //                Serial.println();
 //            }
 //        }

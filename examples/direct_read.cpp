@@ -31,7 +31,15 @@ void loop() {
     // directly read from the accel and gyro registers - not using the fifo
     Vector<double, 3> acc = LSM.get_accel();
     Vector<double, 3> gyr = LSM.get_gyro();
-    Serial.printf("Acc: %lf, %lf, %lf\n     Gyr: %lf, %lf, %lf\n", acc[0], acc[1], acc[2], gyr[0], gyr[1], gyr[2]);
+    Serial.print("Acc: ");
+    Serial.print(acc[0]); Serial.print(", ");
+    Serial.print(acc[1]); Serial.print(", ");
+    Serial.print(acc[2]);
+
+    Serial.print("Gyr: ");
+    Serial.print(gyr[0]); Serial.print(", ");
+    Serial.print(gyr[1]); Serial.print(", ");
+    Serial.print(gyr[2]);
 
     // Be aware of the ODR (Output data rate) that is set - reading at a rate higher than this means you will be reading stale data when using direct reads.
     // Note: The ODR can be set in setup() using e.g.    LSM.set_accel_ODR(OUTPUT_DATA_RATES::ODR_833_HZ);    and     LSM.set_gyro_ODR(OUTPUT_DATA_RATES::ODR_833_HZ);
