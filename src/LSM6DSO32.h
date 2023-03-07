@@ -514,13 +514,13 @@ namespace LSM6DSO32 {
          * @brief Convert the raw gyro values to a vector of doubles
          * @return The Gyro Vector
          */
-        Vector<double, 3> convert_raw_gyro_to_double(Vector<int16_t, 3> raw_gyro);
+        Vector<double, 3> convert_raw_gyro_to_dps(Vector<int16_t, 3> raw_gyro);
 
         /**
          * @brief Convert the raw accel values to a vector of doubles
          * @return The Accel Vector
          */
-        Vector<double, 3> convert_raw_accel_to_double(Vector<int16_t, 3> raw_accel);
+        Vector<double, 3> convert_raw_accel_to_ms2(Vector<int16_t, 3> raw_accel);
 
         /**
          * @brief Get the timestamp value direct from the registers. - 25us per LSB

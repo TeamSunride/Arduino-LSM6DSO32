@@ -643,7 +643,7 @@ namespace LSM6DSO32 {
         return returnVect;
     }
 
-    Vector<double, 3> LSM6DSO32::convert_raw_gyro_to_double(Vector<int16_t, 3> raw_gyro) {
+    Vector<double, 3> LSM6DSO32::convert_raw_gyro_to_dps(Vector<int16_t, 3> raw_gyro) {
         Vector<double, 3> returnVect = {0, 0, 0};
         returnVect[0] = raw_gyro[0] * gyro_conversion_factor;
         returnVect[1] = raw_gyro[1] * gyro_conversion_factor;
@@ -651,7 +651,7 @@ namespace LSM6DSO32 {
         return returnVect;
     }
 
-    Vector<double, 3> LSM6DSO32::convert_raw_accel_to_double(Vector<int16_t, 3> raw_accel) {
+    Vector<double, 3> LSM6DSO32::convert_raw_accel_to_ms2(Vector<int16_t, 3> raw_accel) {
         Vector<double, 3> returnVect = {0, 0, 0};
         returnVect[0] = raw_accel[0] * accel_conversion_factor;
         returnVect[1] = raw_accel[1] * accel_conversion_factor;
