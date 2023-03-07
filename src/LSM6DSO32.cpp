@@ -602,6 +602,25 @@ namespace LSM6DSO32 {
         return (short) ((data[1] << 8) | data[0]);
     }
 
+    Vector<int16_t, 3> LSM6DSO32::get_raw_gyro() {
+        Vector<int16_t, 3> returnVect = {0, 0, 0};
+        byte a[6] = {0};
+        device->read_regs(REGISTER::OUTX_L_G, a, 6);
+        returnVect[0] = ((short) ((a[1] << 8) | a[0]));
+        returnVect[1] = ((short) ((a[3] << 8) | a[2]));
+        returnVect[2] = ((short) ((a[5] << 8) | a[4]));
+        return returnVect;
+    }
+
+    Vector<int16_t, 3> LSM6DSO32::get_raw_accel() {
+        Vector<int16_t, 3> returnVect = {0, 0, 0};
+        byte a[6] = {0};
+        device->read_regs(REGISTER::OUTX_L_A, a, 6);
+        returnVect[0] = ((short) ((a[1] << 8) | a[0]));
+        returnVect[1] = ((short) ((a[3] << 8) | a[2]));
+        returnVect[2] = ((short) ((a[5] << 8) | a[4]));
+        return returnVect;
+    }
 
     Vector<double, 3> LSM6DSO32::get_gyro() {
         Vector<double, 3> returnVect = {0, 0, 0};
@@ -621,6 +640,22 @@ namespace LSM6DSO32 {
         returnVect[0] = ((short) ((a[1] << 8) | a[0])) * accel_conversion_factor;
         returnVect[1] = ((short) ((a[3] << 8) | a[2])) * accel_conversion_factor;
         returnVect[2] = ((short) ((a[5] << 8) | a[4])) * accel_conversion_factor;
+        return returnVect;
+    }
+
+    Vector<double, 3> LSM6DSO32::convert_raw_gyro_to_double(Vector<int16_t, 3> raw_gyro) {
+        Vector<double, 3> returnVect = {0, 0, 0};
+        returnVect[0] = raw_gyro[0] * gyro_conversion_factor;
+        returnVect[1] = raw_gyro[1] * gyro_conversion_factor;
+        returnVect[2] = raw_gyro[2] * gyro_conversion_factor;
+        return returnVect;
+    }
+
+    Vector<double, 3> LSM6DSO32::convert_raw_accel_to_double(Vector<int16_t, 3> raw_accel) {
+        Vector<double, 3> returnVect = {0, 0, 0};
+        returnVect[0] = raw_accel[0] * accel_conversion_factor;
+        returnVect[1] = raw_accel[1] * accel_conversion_factor;
+        returnVect[2] = raw_accel[2] * accel_conversion_factor;
         return returnVect;
     }
 
@@ -780,8 +815,8 @@ namespace LSM6DSO32 {
         byte tag_cnt = (data[0] & 0b00000110) >> 1;
         // byte tag_parity = data[0] & 0b00000001;
         if ((getNumOnes(data[0]) % 2) != 0) {
-            Serial.print("Tag parity error: %d\n");
-            Serial.print(getNumOnes(data[0]));
+            Serial.print("Tag parity error:");
+            Serial.println(getNumOnes(data[0]));
         }
 
         // uncomment to get the tag number (hex)

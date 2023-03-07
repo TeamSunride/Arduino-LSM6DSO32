@@ -14,7 +14,7 @@
 
 
 /* Usage */
-#define CS_pin 10
+#define CS_pin 40
 LSM6DSO32::LSM6DSO32 LSM(CS_pin, SPI, 12000000); // spi protocol constructor
 //LSM6DSO32 sensor(&Wire, 1000000); // i2c protocol constructor
 
@@ -34,6 +34,9 @@ void setup() {
 
     fifo_status = LSM.get_fifo_status();
     LSM.fifo_clear();
+
+//    pinMode(37, OUTPUT);
+//    digitalWrite(37, HIGH); // pull LIS CS high
 }
 
 Vector<double, 4> acc = {0,0,0,0};
@@ -53,10 +56,13 @@ void loop() {
             gyr = gyrFifo.pop();
             if (Serial) {
                 // comment out to your needs.
+                // Testing raw values
+                Vector<int16_t, 3> acc_int = LSM.get_raw_accel();
+                Vector<double, 3> acc_2 = LSM.convert_raw_accel_to_double(acc_int);
                 Serial.print("Acc: ");
-                Serial.print(acc[0]); Serial.print(", ");
-                Serial.print(acc[1]); Serial.print(", ");
-                Serial.print(acc[2]);
+                Serial.print(acc_2[0]); Serial.print(", ");
+                Serial.print(acc_2[1]); Serial.print(", ");
+                Serial.print(acc_2[2]);
 
 //                Serial.print("Gyr: ");
 //                Serial.print(gyr[0]); Serial.print(", ");

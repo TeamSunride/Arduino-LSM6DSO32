@@ -487,20 +487,44 @@ namespace LSM6DSO32 {
         short get_temperature();
 
         /**
+         * @brief Get the raw gyro values direct from the registers as int16_t - makes datalogging more efficient
+         * @return The raw gyro vector
+         */
+        Vector<int16_t, 3> get_raw_gyro();
+
+        /**
+         * @brief Get the raw accel values direct from the registers as int16_t - makes datalogging more efficient
+         * @return The raw accel vector
+         */
+        Vector<int16_t, 3> get_raw_accel();
+
+        /**
          * @brief Get the gyro values direct from the registers.
-         * @return Status Code (0 for success)
+         * @return The Gyro Vector
          */
         Vector<double, 3> get_gyro();
 
         /**
          * @brief Get the accel values direct from the registers
-         * @return Status Code (0 for success)
+         * @return The Accel Vector
          */
         Vector<double, 3> get_accel();
 
         /**
+         * @brief Convert the raw gyro values to a vector of doubles
+         * @return The Gyro Vector
+         */
+        Vector<double, 3> convert_raw_gyro_to_double(Vector<int16_t, 3> raw_gyro);
+
+        /**
+         * @brief Convert the raw accel values to a vector of doubles
+         * @return The Accel Vector
+         */
+        Vector<double, 3> convert_raw_accel_to_double(Vector<int16_t, 3> raw_accel);
+
+        /**
          * @brief Get the timestamp value direct from the registers. - 25us per LSB
-         * @return
+         * @return the timestamp value
          */
         uint32_t get_timestamp();
 

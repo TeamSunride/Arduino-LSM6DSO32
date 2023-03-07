@@ -4,7 +4,7 @@
 #include <unity.h>
 #include "LSM6DSO32.h"
 
-#define CS_pin 10
+#define CS_pin 40
 #define WHO_AM_I_ID 0x6C
 
 
@@ -23,7 +23,7 @@ void tearDown(void) {
 
 /* -------------------------------- Tests -------------------------------- */
 void test_who_am_i() {
-    TEST_ASSERT(LSMTest.who_am_i() == WHO_AM_I_ID);
+    TEST_ASSERT(LSMTest.who_am_i() == LSM6DSO32::WHO_AM_I_ID);
 }
 
 void test_get_accel() {

@@ -14,9 +14,10 @@
 
 namespace LSM6DSO32 {
     // Protocol stuff
-    static const uint8_t WRITE_BYTE = 0b00000000; // These are unique to this device, so they are member functions
-    static const uint8_t READ_BYTE = 0b10000000;  // They are needed to make protocol work properly.
-    static const uint8_t DEFAULT_I2C_ADDRESS = 0x6A; // from back of adafruit breakout board
+    const uint8_t WHO_AM_I_ID = 0x6C;
+    const uint8_t WRITE_BYTE = 0b00000000; // These are unique to this device, so they are member functions
+    const uint8_t READ_BYTE = 0b10000000;  // They are needed to make protocol work properly.
+    const uint8_t DEFAULT_I2C_ADDRESS = 0x6A; // from back of adafruit breakout board
 
     struct FIFO_STATUS {
         ///  0: FIFO filling is lower than WTM; 1: FIFO filling is equal to or greater than WTM)
