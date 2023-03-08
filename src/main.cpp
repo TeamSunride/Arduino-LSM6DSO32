@@ -58,7 +58,7 @@ void loop() {
                 // comment out to your needs.
                 // Testing raw values
                 Vector<int16_t, 3> acc_int = LSM.get_raw_accel();
-                Vector<double, 3> acc_2 = LSM.convert_raw_accel_to_double(acc_int);
+                Vector<double, 3> acc_2 = LSM.convert_raw_accel_to_ms2(acc_int);
                 Serial.print("Acc: ");
                 Serial.print(acc_2[0]); Serial.print(", ");
                 Serial.print(acc_2[1]); Serial.print(", ");
